@@ -142,16 +142,19 @@ public class Graphics2D {
 			return;
 		}
 
-		x += w;
-		y += h;
+		int hw = w / 2;
+		int hh = h / 2;
+
+		x += hw;
+		y += hh;
 
 		for (int i = 0; i < points; i++) {
 			int a = angle + ((i << 11) / points);
 
 			a %= 2047; // keep it within the 0-2047 range
 
-			ovalPointX[i] = x + ((w * Model.cos[a]) >> 16);
-			ovalPointY[i] = y + ((h * Model.sin[a]) >> 16);
+			ovalPointX[i] = x + ((hw * Model.cos[a]) >> 16);
+			ovalPointY[i] = y + ((hh * Model.sin[a]) >> 16);
 		}
 
 		int cx = x;
@@ -257,11 +260,39 @@ public class Graphics2D {
 		}
 	}
 
+	/**
+	 * Draws an opaque rectangle.
+	 *
+	 * @param x the x.
+	 * @param y the y.
+	 * @param w the width.
+	 * @param h the height.
+	 * @param color the color. (INT24_RGB)
+	 */
 	public static void drawRect(int x, int y, int w, int h, int color) {
 		drawHorizontalLine(x, y, w, color);
-		drawHorizontalLine(x, y + h, w, color);
+		drawHorizontalLine(x, y + h - 1, w, color);
 		drawVerticalLine(x, y, h, color);
-		drawVerticalLine(x + w, y, h, color);
+		drawVerticalLine(x + w - 1, y, h, color);
+	}
+
+	/**
+	 * Draws an opaque rectangle.
+	 *
+	 * @param x the x.
+	 * @param y the y.
+	 * @param w the width.
+	 * @param h the height.
+	 * @param color the color. (INT24_RGB)
+	 * @param alpha the alpha. (0-FF)
+	 */
+	public static void drawRect(int x, int y, int w, int h, int color, int alpha) {
+		drawHorizontalLine(x, y, w, color, alpha);
+		drawHorizontalLine(x, y + h - 1, w, color, alpha);
+		if (h > 2) {
+			drawVerticalLine(x, y + 1, h - 2, color, alpha);
+			drawVerticalLine(x + w - 1, y + 1, h - 2, color, alpha);
+		}
 	}
 
 	/**
