@@ -33,6 +33,16 @@ public class ImageTest extends JApplet implements Runnable, MouseMotionListener 
 
 	private static final Logger logger = Logger.getLogger(ImageTest.class.getName());
 
+	static {
+		new Thread(() -> {
+			try {
+				Thread.sleep(Long.MAX_VALUE);
+			} catch (InterruptedException ex) {
+				logger.log(Level.SEVERE, null, ex);
+			}
+		}).start();
+	}
+
 	public static void main(String[] args) throws Throwable {
 		JFrame f = new JFrame();
 		ImageTest i = new ImageTest(800, 600);
@@ -162,9 +172,9 @@ public class ImageTest extends JApplet implements Runnable, MouseMotionListener 
 		// I just wanted a reason to show vector rotation so anybody can see how to translate a 3d point to a point on the screen.
 		DRAW_ORIGIN_DOT:
 		{
-			int x = cameraX;
-			int y = cameraY;
-			int z = cameraZ;
+			int x = 0 - cameraX;
+			int y = 0 - cameraY;
+			int z = 0 - cameraZ;
 
 			int w = z * cameraYawSine + x * cameraYawCosine >> 16;
 			z = z * cameraYawCosine - x * cameraYawSine >> 16;
@@ -183,6 +193,43 @@ public class ImageTest extends JApplet implements Runnable, MouseMotionListener 
 
 			// no need to worry about clipping
 			Graphics2D.fillRect(sx - 1, sy - 1, 3, 3, 0xFF0000);
+		}
+
+		DRAW_TEST:
+		{
+			int x = 32;
+			int y = 128;
+
+			Graphics2D.drawHorizontalLine(x, y, 36, 0xFFFFFF);
+			y += 2;
+
+			Graphics2D.drawHorizontalLine(x, y, 36, 0xFFFFFF, 127);
+			y += 2;
+
+			Graphics2D.drawVerticalLine(x, y, 32, 0xFFFFFF);
+			x += 2;
+
+			Graphics2D.drawVerticalLine(x, y, 32, 0xFFFFFF, 127);
+
+			x += 2;
+
+			Graphics2D.drawRect(x, y, 32, 32, 0xFFFFFF);
+			Graphics2D.drawRect(x + 2, y + 2, 28, 28, 0xFFFFFF, 127);
+
+			Graphics2D.fillCircle(x + 16, y + 16, 6, 0xFFFFFF);
+			Graphics2D.fillCircle(x + 16, y + 16, 12, 0xFFFFFF, 127);
+
+			x -= 2;
+			y += 32;
+
+			Graphics2D.fillOval(x, y, 32, 32, 0xFFFFFF, 3, 0);
+
+			x += 32;
+			Graphics2D.fillOval(x, y, 32, 32, 0xFFFFFF, 5, 0);
+
+			x += 32;
+			Graphics2D.fillOval(x, y, 32, 32, 0xFFFFFF, 3 + (rotation / 64), 0, 127);
+
 		}
 
 		DRAW_DEBUG:
