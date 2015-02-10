@@ -62,10 +62,6 @@ public class ImageTest extends JApplet implements Runnable, MouseMotionListener 
 	int cameraY = 1024;
 	int cameraZ = 2048;
 
-	int lightX = -256;
-	int lightY = 0;
-	int lightZ = -256;
-
 	boolean running;
 
 	public ImageTest(int width, int height) {
@@ -156,20 +152,19 @@ public class ImageTest extends JApplet implements Runnable, MouseMotionListener 
 		int cameraYawSine = Model.sin[cameraYaw];
 		int cameraYawCosine = Model.cos[cameraYaw];
 
-		int bitset = 1;
-
 		DRAW_MODEL:
 		{
-			model.draw(0, rotation, cameraPitchSine, cameraPitchCosine, cameraYawSine, cameraYawCosine, cameraX, cameraY, cameraZ, bitset);
+			model.draw(0, rotation, cameraPitchSine, cameraPitchCosine, cameraYawSine, cameraYawCosine, cameraX, cameraY, cameraZ, 1);
 			rotation += 8;
 			rotation &= 0x7FF;
 		}
 
-		DRAW_LIGHT_DOT:
+		// I just wanted a reason to show vector rotation so anybody can see how to translate a 3d point to a point on the screen.
+		DRAW_ORIGIN_DOT:
 		{
-			int x = lightX + cameraX;
-			int y = lightY + cameraY;
-			int z = lightZ + cameraZ;
+			int x = cameraX;
+			int y = cameraY;
+			int z = cameraZ;
 
 			int w = z * cameraYawSine + x * cameraYawCosine >> 16;
 			z = z * cameraYawCosine - x * cameraYawSine >> 16;
@@ -180,7 +175,7 @@ public class ImageTest extends JApplet implements Runnable, MouseMotionListener 
 			y = w;
 
 			if (z == 0) {
-				break DRAW_LIGHT_DOT;
+				break DRAW_ORIGIN_DOT;
 			}
 
 			int sx = Graphics3D.halfWidth + (x << 9) / z;
