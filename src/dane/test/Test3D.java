@@ -38,7 +38,7 @@ public class Test3D extends TestApplet {
 		f.add(test);
 		f.setResizable(false);
 
-		test.initialize(800, 600);
+		test.initialize(1024, 768);
 		f.pack();
 
 		f.setLocationRelativeTo(null);
@@ -56,8 +56,11 @@ public class Test3D extends TestApplet {
 	int cameraZ = 8192;
 
 	public Test3D() {
+		long time = System.nanoTime();
+		model = new Grid(13312, 104, 104);
+		time = System.nanoTime() - time;
 
-		model = new Grid(13312, 32, 32);
+		System.out.println("Grid took " + String.format("%sms", time / 1_000_000.0) + " to create.");
 
 		// we need bounds before we center
 		model.calculateBoundaries();
@@ -114,34 +117,33 @@ public class Test3D extends TestApplet {
 		cameraZ += offsetZ;
 	}
 
+	public boolean dragging = false;
 	public int dragX = -1;
 	public int dragY = -1;
 
 	@Override
 	public void update() {
-		if (dragButton != 0) {
-			if (dragX == -1) {
-				dragX = mouseX;
-				dragY = mouseY;
-			} else {
-				int dx = mouseX - dragX;
-				int dy = mouseY - dragY;
+		boolean wasDragging = dragging;
+		dragging = dragButton != 0;
 
-				cameraYaw -= dx;
-				cameraYaw &= 0x7FF;
-
-				cameraPitch += dy;
-				cameraPitch &= 0x7FF;
-
-				dragX = mouseX;
-				dragY = mouseY;
-			}
+		if (!wasDragging && dragging) {
+			dragX = mouseX;
+			dragY = mouseY;
 		}
 
-		int cameraPitchSine = Model.sin[cameraPitch];
-		int cameraPitchCosine = Model.cos[cameraPitch];
-		int cameraYawSine = Model.sin[cameraYaw];
-		int cameraYawCosine = Model.cos[cameraYaw];
+		if (dragging) {
+			int dx = mouseX - dragX;
+			int dy = mouseY - dragY;
+
+			cameraYaw -= dx;
+			cameraYaw &= 0x7FF;
+
+			cameraPitch += dy;
+			cameraPitch &= 0x7FF;
+
+			dragX = mouseX;
+			dragY = mouseY;
+		}
 
 		int speed = 128;
 		int backward = 0;
@@ -202,8 +204,9 @@ public class Test3D extends TestApplet {
 				int sx = Graphics3D.halfWidth + (x << 9) / z;
 				int sy = Graphics3D.halfHeight + (y << 9) / z;
 
-				// no need to worry about clipping
-				Graphics2D.fillRect(sx - 1, sy - 1, 3, 3, 0xFF0000);
+				if (sx >= 0 && sx <= width && sy >= 0 && sy <= height) {
+					Graphics2D.fillRect(sx - 1, sy - 1, 3, 3, 0xFF0000);
+				}
 			}
 		}
 

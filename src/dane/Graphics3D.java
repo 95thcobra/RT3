@@ -144,6 +144,15 @@ public class Graphics3D extends Graphics2D {
 	}
 
 	/**
+	 * Creates the new zbuffer for the current target.
+	 *
+	 * @return the int[] zbuffer.
+	 */
+	public static final int[] setZBuffer() {
+		return setZBuffer(Graphics2D.targetWidth, Graphics2D.targetHeight);
+	}
+
+	/**
 	 * Creates the new zbuffer.
 	 *
 	 * @param w the width.

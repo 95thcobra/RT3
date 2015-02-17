@@ -32,7 +32,7 @@ public class Model {
 	public static final int NEAR_Z = 50;
 	public static final int FAR_Z = 0x7FFFF;
 
-	public static final int MAX_COMPONENT_COUNT = 1024 * 12;
+	public static final int MAX_COMPONENT_COUNT = 1024 * 32;
 
 	public static boolean[] testTriangleX = new boolean[MAX_COMPONENT_COUNT];
 	public static boolean[] projectTriangle = new boolean[MAX_COMPONENT_COUNT];
@@ -119,70 +119,30 @@ public class Model {
 
 	public Normal[] normals, unmodifiedNormals;
 
-	/**
-	 * If there is an existing vertex in the same location, then it will be
-	 * returned, else a new vertex is created and returned.
-	 *
-	 * @param x the x.
-	 * @param y the y.
-	 * @param z the z.
-	 * @return the vertex index.
-	 */
-	public int getVertex(int x, int y, int z) {
-		long l = (long) x | ((long) y << 20L) | ((long) z << 40L);
-
-		if (vertexLookup.containsKey(l)) {
-			return vertexLookup.get(l);
-		}
-
-		return addVertex(x, y, z);
-	}
-
 	public final int addVertex(int x, int y, int z) {
-		int[] old = vertexX;
-		int count = vertexCount + 1;
-
-		if (vertexX.length < count) {
-			vertexX = new int[count];
-			System.arraycopy(old, 0, vertexX, 0, old.length);
-			old = vertexY;
-
-			vertexY = new int[count];
-			System.arraycopy(old, 0, vertexY, 0, old.length);
-			old = vertexZ;
-
-			vertexZ = new int[count];
-			System.arraycopy(old, 0, vertexZ, 0, old.length);
-		}
-
 		vertexX[vertexCount] = x;
 		vertexY[vertexCount] = y;
 		vertexZ[vertexCount] = z;
-		vertexLookup.put((long) x | ((long) y << 20L) | ((long) z << 40L), vertexCount);
 		return vertexCount++;
 	}
 
 	public final int addTriangle(int a, int b, int c) {
-		int[] old = triangleVertexA;
-		int count = old.length + 1;
-
-		if (triangleVertexA.length < count) {
-			triangleVertexA = new int[count];
-			System.arraycopy(old, 0, triangleVertexA, 0, old.length);
-
-			old = triangleVertexB;
-			triangleVertexB = new int[count];
-			System.arraycopy(old, 0, triangleVertexB, 0, old.length);
-
-			old = triangleVertexC;
-			triangleVertexC = new int[count];
-			System.arraycopy(old, 0, triangleVertexC, 0, old.length);
-		}
-
 		triangleVertexA[triangleCount] = a;
 		triangleVertexB[triangleCount] = b;
 		triangleVertexC[triangleCount] = c;
 		return triangleCount++;
+	}
+
+	public final void setVertex(int index, int x, int y, int z) {
+		vertexX[index] = x;
+		vertexY[index] = y;
+		vertexZ[index] = z;
+	}
+
+	public final void setTriangle(int index, int a, int b, int c) {
+		triangleVertexA[index] = a;
+		triangleVertexB[index] = b;
+		triangleVertexC[index] = c;
 	}
 
 	public void invert() {
@@ -756,7 +716,7 @@ public class Model {
 					int area = ((xA - xB) * (vertexScreenY[c] - vertexScreenY[b])) - ((vertexScreenY[a] - vertexScreenY[b]) * (xC - xB));
 
 					// change to > 0 to only allow front faces, < 0 for back faces, and != 0 for both faces.
-					if (area != 0) {
+					if (area > 0) {
 						projectTriangle[t] = false;
 						testTriangleX[t] = xA < 0 || xB < 0 || xC < 0 || xA > Graphics2D.rightX || xB > Graphics2D.rightX || xC > Graphics2D.rightX;
 						drawTriangle(t);

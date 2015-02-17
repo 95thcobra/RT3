@@ -24,42 +24,58 @@ package dane;
  */
 public class Grid extends Model {
 
-	public int xSubdivisions;
-	public int ySubdivisions;
+	public int columns;
+	public int rows;
 	public int size;
 
-	public Grid(int size, int xSubdivisions, int ySubdivisions) {
-		int tileSizeX = size / xSubdivisions;
-		int tileSizeY = size / ySubdivisions;
+	public Grid(int size, int columns, int rows) {
+		int tileWidth = size / columns;
+		int tileHeight = size / rows;
 
 		this.size = size;
-		this.xSubdivisions = xSubdivisions;
-		this.ySubdivisions = ySubdivisions;
+		this.columns = columns;
+		this.rows = rows;
+
+		this.triangleCount = (columns * rows) * 2;
+		this.vertexCount = (columns + 1) * (rows + 1);
 
 		this.triangleVertexA = new int[triangleCount];
 		this.triangleVertexB = new int[triangleCount];
-		this.triangleVertexB = new int[triangleCount];
+		this.triangleVertexC = new int[triangleCount];
 
-		this.vertexX = new int[triangleCount];
-		this.vertexY = new int[triangleCount];
-		this.vertexZ = new int[triangleCount];
+		this.vertexX = new int[vertexCount];
+		this.vertexY = new int[vertexCount];
+		this.vertexZ = new int[vertexCount];
 
-		for (int x = 0; x < xSubdivisions; x++) {
-			for (int y = 0; y < ySubdivisions; y++) {
-				int x1 = x * tileSizeX;
-				int z1 = y * tileSizeY;
-
-				int x2 = x1 + tileSizeX;
-				int z2 = z1 + tileSizeY;
-
-				int a = getVertex(x1, 0, z1);
-				int b = getVertex(x2, 0, z1);
-				int c = getVertex(x1, 0, z2);
-				int d = getVertex(x2, 0, z2);
-
-				addTriangle(a, b, c);
-				addTriangle(c, b, d);
+		int i = 0;
+		for (int z = 0; z < rows + 1; z++) {
+			for (int x = 0; x < columns + 1; x++) {
+				setVertex(
+					i,
+					x * tileWidth,
+					0,
+					z * tileHeight
+				);
+				i++;
 			}
+		}
+
+		int vertexColumns = columns + 1;
+		int vertex = 0;
+
+		for (i = 0; i < this.triangleCount; i += 2) {
+			if (vertex % vertexColumns == columns) {
+				vertex++;
+			}
+
+			int a = vertex;
+			int b = vertex + 1;
+			int c = vertex + columns + 1;
+			int d = vertex + columns + 2;
+
+			setTriangle(i, a, b, c);
+			setTriangle(i + 1, c, b, d);
+			vertex++;
 		}
 	}
 
