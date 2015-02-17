@@ -50,32 +50,24 @@ public class Grid extends Model {
 		int i = 0;
 		for (int z = 0; z < rows + 1; z++) {
 			for (int x = 0; x < columns + 1; x++) {
-				setVertex(
-					i,
-					x * tileWidth,
-					0,
-					z * tileHeight
-				);
-				i++;
+				setVertex(i++, x * tileWidth, 0, z * tileHeight);
 			}
 		}
 
 		int vertexColumns = columns + 1;
-		int vertex = 0;
+		int a = 0;
 
 		for (i = 0; i < this.triangleCount; i += 2) {
-			if (vertex % vertexColumns == columns) {
-				vertex++;
+			if (a % vertexColumns == columns) {
+				a++;
 			}
 
-			int a = vertex;
-			int b = vertex + 1;
-			int c = vertex + columns + 1;
-			int d = vertex + columns + 2;
+			int b = a + 1;
+			int c = a + columns + 1;
 
 			setTriangle(i, a, b, c);
-			setTriangle(i + 1, c, b, d);
-			vertex++;
+			setTriangle(i + 1, c, b, a + columns + 2);
+			a++;
 		}
 	}
 
