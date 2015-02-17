@@ -1487,26 +1487,26 @@ public class Graphics3D extends Graphics2D {
 		int lightSlopeBC = 0;
 		int lightSlopeCA = 0;
 
-		int zSlopeAB = 0;
-		int zSlopeBC = 0;
-		int zSlopeCA = 0;
+		int zSlopeAB = yB - yA; // temporary value
+		int zSlopeBC = yC - yB; // temporary value
+		int zSlopeCA = yA - yC; // temporary value
 
 		if (yB != yA) {
-			slopeAB = (xB - xA << 16) / (yB - yA);
-			lightSlopeAB = (colorB - colorA << 15) / (yB - yA);
-			zSlopeAB = (zB - zA << 16) / (yB - yA);
+			slopeAB = (xB - xA << 16) / zSlopeAB;
+			lightSlopeAB = (colorB - colorA << 15) / zSlopeAB;
+			zSlopeAB = (zB - zA << 16) / zSlopeAB;
 		}
 
 		if (yC != yB) {
-			slopeBC = (xC - xB << 16) / (yC - yB);
-			lightSlopeBC = (colorC - colorB << 15) / (yC - yB);
-			zSlopeBC = (zC - zB << 16) / (yC - yB);
+			slopeBC = (xC - xB << 16) / zSlopeBC;
+			lightSlopeBC = (colorC - colorB << 15) / zSlopeBC;
+			zSlopeBC = (zC - zB << 16) / zSlopeBC;
 		}
 
 		if (yC != yA) {
-			slopeCA = (xA - xC << 16) / (yA - yC);
-			lightSlopeCA = (colorA - colorC << 15) / (yA - yC);
-			zSlopeCA = (zA - zC << 16) / (yA - yC);
+			slopeCA = (xA - xC << 16) / zSlopeCA;
+			lightSlopeCA = (colorA - colorC << 15) / zSlopeCA;
+			zSlopeCA = (zA - zC << 16) / zSlopeCA;
 		}
 
 		if (yA <= yB && yA <= yC) {
@@ -2143,7 +2143,6 @@ public class Graphics3D extends Graphics2D {
 			int zSlope;
 
 			if (testX) {
-				System.out.println("x");
 				if (xB - xA > 3) {
 					lightnessSlope = (colorB - colorA) / (xB - xA);
 					zSlope = (zB - zA) / (xB - xA);

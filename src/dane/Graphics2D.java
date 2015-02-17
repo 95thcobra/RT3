@@ -57,7 +57,29 @@ public class Graphics2D {
 	private static final int[] ovalPointX = new int[1024], ovalPointY = new int[1024];
 
 	/**
-	 * Fills our destination with 0's.
+	 * Offsets for drawing pixels
+	 */
+	private static int targetOffset, srcOffset;
+
+	/**
+	 * Stride length for drawing pixels
+	 */
+	private static int targetStep, srcStep;
+
+	/**
+	 * Dimension for drawing pixels
+	 */
+	private static int drawWidth, drawHeight;
+
+	/**
+	 * Fills our target with 0's.
+	 */
+	public static void clear() {
+		clear(0);
+	}
+
+	/**
+	 * Fills our target with the provided color.
 	 *
 	 * @param rgb the clear color. (INT24_RGB)
 	 */
@@ -498,6 +520,86 @@ public class Graphics2D {
 			old = ((old & 0xFF00FF) * alphaInverted >> 8 & 0xFF00FF) + ((old & 0xFF00) * alphaInverted >> 8 & 0xFF00);
 			target[pos] = color + old;
 			pos += targetWidth;
+		}
+	}
+
+	public static final boolean testBounds(int x, int y, int w, int h) {
+		targetOffset = x + (y * targetWidth);
+		srcOffset = 0;
+		targetStep = (int) (targetWidth - w);
+		srcStep = 0;
+
+		// clip the top
+		if (y < top) {
+			int cut = (int) (top - y);
+			h -= cut;
+			y = top;
+			srcOffset += cut * w;
+			targetOffset += cut * targetWidth;
+		}
+
+		// clip the bottom
+		if (y + h > bottom) {
+			h -= (y + h) - bottom;
+		}
+
+		// clip the left
+		if (x < left) {
+			int cut = (int) (left - x);
+			w -= cut;
+			x = left;
+
+			srcOffset += cut;
+			targetOffset += cut;
+			srcStep += cut;
+			targetStep += cut;
+		}
+
+		// clip the right
+		if (x + w > right) {
+			int cut = (int) ((x + w) - right);
+			w -= cut;
+			srcStep += cut;
+			targetStep += cut;
+		}
+
+		drawWidth = (int) w;
+		drawHeight = (int) h;
+
+		return w > 0 && h > 0;
+	}
+
+	public static void drawPixelMask(int x, int y, int w, int h, byte[] mask, int rgb) {
+		if (testBounds(x, y, w, h)) {
+			for (y = 0; y < drawHeight; y++) {
+				for (x = 0; x < drawWidth; x++) {
+					byte b = mask[srcOffset++];
+					if (b != 0) {
+						target[targetOffset++] = rgb;
+					} else {
+						targetOffset++;
+					}
+				}
+				targetOffset += targetStep;
+				srcOffset += srcStep;
+			}
+		}
+	}
+
+	public static void drawPixels(int x, int y, int w, int h, int[] pixels) {
+		if (testBounds(x, y, w, h)) {
+			for (y = 0; y < drawHeight; y++) {
+				for (x = 0; x < drawWidth; x++) {
+					int rgb = pixels[srcOffset++];
+					if (rgb != 0) {
+						target[targetOffset++] = rgb;
+					} else {
+						targetOffset++;
+					}
+				}
+				targetOffset += targetStep;
+				srcOffset += srcStep;
+			}
 		}
 	}
 

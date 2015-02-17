@@ -361,64 +361,6 @@ public class Bitmap extends Graphics2D {
 		}
 	}
 
-	public void drawRotatedTest(int x, int y, int w, int h, int pivotX, int pivotY, int theta) {
-		try {
-			int cx = -w / 2;
-			int cy = -h / 2;
-
-			int sin = (int) (Math.sin((double) theta / 326.11) * 65536.0);
-			int cos = (int) (Math.cos((double) theta / 326.11) * 65536.0);
-
-			int offX = (pivotX << 16) + (cy * sin + cx * cos);
-			int offY = (pivotY << 16) + (cy * cos - cx * sin);
-			int baseOffset = x + (y * Graphics2D.targetWidth);
-
-			for (y = 0; y < h; y++) {
-				int off = baseOffset;
-				int dstX = offX + cos;
-				int dstY = offY - sin;
-
-				for (x = 0; x < w; x++) {
-					int left = x;
-					int top = y;
-
-					int right = (left + 1) % width;
-					int bottom = (top + 1) % height;
-
-					int rgbTopLeft = pixels[left + (top * width)];
-					int rgbBottomLeft = pixels[left + (bottom * width)];
-
-					int rgbTopRight = pixels[right + (top * width)];
-					int rgbBottomRight = pixels[right + (bottom * width)];
-
-					int u1 = (dstX >> 8) - (left << 8);
-					int v1 = (dstY >> 8) - (top << 8);
-					int u2 = (right << 8) - (dstX >> 8);
-					int v2 = (bottom << 8) - (dstY >> 8);
-
-					int a1 = u2 * v2;
-					int a2 = u1 * v2;
-					int a3 = u2 * v1;
-					int a4 = u1 * v1;
-
-					int r = (rgbTopLeft >> 16 & 0xff) * a1 + (rgbTopRight >> 16 & 0xff) * a2 + (rgbBottomLeft >> 16 & 0xff) * a3 + (rgbBottomRight >> 16 & 0xff) * a4 & 0xff0000;
-					int g = (rgbTopLeft >> 8 & 0xff) * a1 + (rgbTopRight >> 8 & 0xff) * a2 + (rgbBottomLeft >> 8 & 0xff) * a3 + (rgbBottomRight >> 8 & 0xff) * a4 >> 8 & 0xff00;
-					int b = (rgbTopLeft & 0xff) * a1 + (rgbTopRight & 0xff) * a2 + (rgbBottomLeft & 0xff) * a3 + (rgbBottomRight & 0xff) * a4 >> 16;
-
-					Graphics2D.target[off++] = r | g | b;
-					dstX += cos;
-					dstY -= sin;
-				}
-
-				offX += sin;
-				offY += cos;
-				baseOffset += Graphics2D.targetWidth;
-			}
-		} catch (Exception e) {
-			logger.log(Level.WARNING, "Error drawing rotated bitmap", e);
-		}
-	}
-
 	public void flipHorizontally() {
 		int[] flipped = new int[width * height];
 		int off = 0;

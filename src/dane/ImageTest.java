@@ -60,19 +60,22 @@ public class ImageTest extends JApplet implements Runnable, MouseMotionListener 
 	BufferedImage image;
 	int[] pixels;
 
+	int deltime = 20;
 	int fps = 50;
 	double ft = 0.0;
 
 	Model model;
 	int rotation = 0;
 
-	int cameraPitch = 196;
+	int cameraPitch = 128;
 	int cameraYaw;
 	int cameraX;
-	int cameraY = 1024;
-	int cameraZ = 2048;
+	int cameraY = 128;
+	int cameraZ = 256;
 
 	boolean running;
+
+	private final long[] optim = new long[10];
 
 	public ImageTest(int width, int height) {
 		setSize(width, height);
@@ -96,36 +99,16 @@ public class ImageTest extends JApplet implements Runnable, MouseMotionListener 
 		Graphics3D.texturedShading = false;
 		Model.allowInput = true;
 
-		model = new Model();
-
-		// assemble our grid model
-		for (int x = 0; x < 32; x++) {
-			for (int z = 0; z < 32; z++) {
-				int x1 = x * 128;
-				int z1 = z * 128;
-
-				int x2 = x1 + 128;
-				int z2 = z1 + 128;
-
-				int a = model.getVertex(x1, 0, z1);
-				int b = model.getVertex(x2, 0, z1);
-				int c = model.getVertex(x1, 0, z2);
-				int d = model.getVertex(x2, 0, z2);
-
-				model.addTriangle(a, b, c);
-				model.addTriangle(c, b, d);
-			}
-		}
+		System.out.println("Creating grid");
+		model = new Grid(1024, 64, 64);
+		System.out.println("Grid created");
 
 		// we need bounds before we center
 		model.calculateBoundaries();
+		model.translate(-model.maxBoundX / 2, -model.maxBoundY / 2, -model.maxBoundZ / 2);
 
-		// center the model
-		model.translate(-model.maxBoundX / 2, 0, -model.maxBoundZ / 2);
-
-		// raise the points to give it a hilly look
 		for (int i = 0; i < model.vertexCount; i++) {
-			model.vertexY[i] += (int) (Math.random() * 32);
+			model.vertexY[i] += (int) (Math.random() * 8);
 		}
 
 		model.triangleColor = new int[model.triangleCount];
@@ -142,8 +125,9 @@ public class ImageTest extends JApplet implements Runnable, MouseMotionListener 
 		model.calculateNormals();
 		model.applyLighting(64, 768, -50, -50, -30, true);
 
-		System.gc();
+		initializeQueue(30, 30, 30, 25);
 
+		System.gc();
 		running = true;
 		new Thread(this).start();
 	}
@@ -151,6 +135,88 @@ public class ImageTest extends JApplet implements Runnable, MouseMotionListener 
 	@Override
 	public void addNotify() {
 		super.addNotify(); //To change body of generated methods, choose Tools | Templates.
+	}
+
+	public int[] queueX = new int[3000];
+	public int[] queueY = new int[3000];
+	public int queueSize = 0;
+	public int queueTick = 0;
+
+	public final void initializeQueue(int fromX, int fromY, int fromZ, int radius) {
+		queueSize = 0;
+
+		int minX = fromX - radius;
+		int minY = fromY - radius;
+		int minZ = fromZ;
+
+		int maxX = fromX + radius;
+		int maxY = fromY + radius;
+		int maxZ = fromZ + 1;
+
+		if (minX < 0) {
+			minX = 0;
+		}
+
+		if (minY < 0) {
+			minY = 0;
+		}
+
+		if (minZ < 0) {
+			minZ = 0;
+		}
+
+		long startTime = System.nanoTime();
+
+		for (int z = -radius; z <= 0; z++) {
+			int z0 = fromZ + z;
+			int z1 = fromZ - z;
+
+			if (z0 < minZ && z1 >= maxZ) {
+				continue;
+			}
+
+			for (int x = -radius; x <= 0; x++) {
+				int x0 = fromX + x;
+				int x1 = fromX - x;
+
+				if (x0 < minX && x1 >= maxX) {
+					continue;
+				}
+
+				for (int y = -radius; y <= 0; y++) {
+					int y0 = fromY + y;
+					int y1 = fromY - y;
+
+					if (x0 >= minX) {
+						if (y0 >= minY) {
+							queueX[queueSize] = x0;
+							queueY[queueSize++] = y0;
+						}
+
+						if (y1 < maxY) {
+							queueX[queueSize] = x0;
+							queueY[queueSize++] = y1;
+						}
+					}
+
+					if (x1 < maxX) {
+						if (y0 >= minY) {
+							queueX[queueSize] = x1;
+							queueY[queueSize++] = y0;
+						}
+						if (y1 < maxY) {
+							queueX[queueSize] = x1;
+							queueY[queueSize++] = y1;
+						}
+					}
+				}
+			}
+		}
+
+		startTime = System.nanoTime() - startTime;
+
+		System.out.println("Queue size: " + queueSize);
+		System.out.println("Took " + (startTime / 1_000_000.0) + "ms to create queue");
 	}
 
 	public void draw() {
@@ -162,16 +228,21 @@ public class ImageTest extends JApplet implements Runnable, MouseMotionListener 
 		int cameraYawSine = Model.sin[cameraYaw];
 		int cameraYawCosine = Model.cos[cameraYaw];
 
-		DRAW_MODEL:
-		{
+		final int DRAW_MODEL = (1 << 0);
+		final int DRAW_ORIGIN_DOT = (1 << 1);
+		final int DRAW_DEBUG = (1 << 2);
+		int flags = DRAW_MODEL | DRAW_DEBUG;
+
+		//cameraYaw = (256 * Model.sin[rotation]) >> 16;
+		//cameraYaw &= 0x7FF;
+		if ((flags & DRAW_MODEL) != 0) {
 			model.draw(0, rotation, cameraPitchSine, cameraPitchCosine, cameraYawSine, cameraYawCosine, cameraX, cameraY, cameraZ, 1);
-			rotation += 8;
+			rotation += 4;
 			rotation &= 0x7FF;
 		}
 
 		// I just wanted a reason to show vector rotation so anybody can see how to translate a 3d point to a point on the screen.
-		DRAW_ORIGIN_DOT:
-		{
+		if ((flags & DRAW_ORIGIN_DOT) != 0) {
 			int x = 0 - cameraX;
 			int y = 0 - cameraY;
 			int z = 0 - cameraZ;
@@ -184,56 +255,16 @@ public class ImageTest extends JApplet implements Runnable, MouseMotionListener 
 			z = y * cameraPitchSine + z * cameraPitchCosine >> 16;
 			y = w;
 
-			if (z == 0) {
-				break DRAW_ORIGIN_DOT;
+			if (z != 0) {
+				int sx = Graphics3D.halfWidth + (x << 9) / z;
+				int sy = Graphics3D.halfHeight + (y << 9) / z;
+
+				// no need to worry about clipping
+				Graphics2D.fillRect(sx - 1, sy - 1, 3, 3, 0xFF0000);
 			}
-
-			int sx = Graphics3D.halfWidth + (x << 9) / z;
-			int sy = Graphics3D.halfHeight + (y << 9) / z;
-
-			// no need to worry about clipping
-			Graphics2D.fillRect(sx - 1, sy - 1, 3, 3, 0xFF0000);
 		}
 
-		DRAW_TEST:
-		{
-			int x = 32;
-			int y = 128;
-
-			Graphics2D.drawHorizontalLine(x, y, 36, 0xFFFFFF);
-			y += 2;
-
-			Graphics2D.drawHorizontalLine(x, y, 36, 0xFFFFFF, 127);
-			y += 2;
-
-			Graphics2D.drawVerticalLine(x, y, 32, 0xFFFFFF);
-			x += 2;
-
-			Graphics2D.drawVerticalLine(x, y, 32, 0xFFFFFF, 127);
-
-			x += 2;
-
-			Graphics2D.drawRect(x, y, 32, 32, 0xFFFFFF);
-			Graphics2D.drawRect(x + 2, y + 2, 28, 28, 0xFFFFFF, 127);
-
-			Graphics2D.fillCircle(x + 16, y + 16, 6, 0xFFFFFF);
-			Graphics2D.fillCircle(x + 16, y + 16, 12, 0xFFFFFF, 127);
-
-			x -= 2;
-			y += 32;
-
-			Graphics2D.fillOval(x, y, 32, 32, 0xFFFFFF, 3, 0);
-
-			x += 32;
-			Graphics2D.fillOval(x, y, 32, 32, 0xFFFFFF, 5, 0);
-
-			x += 32;
-			Graphics2D.fillOval(x, y, 32, 32, 0xFFFFFF, 3 + (rotation / 64), 0, 127);
-
-		}
-
-		DRAW_DEBUG:
-		{
+		if ((flags & DRAW_DEBUG) != 0) {
 			Runtime r = Runtime.getRuntime();
 
 			graphics.drawString("Mem: " + (r.totalMemory() - r.freeMemory()) / 1024 + "k", 16, 16);
@@ -250,8 +281,6 @@ public class ImageTest extends JApplet implements Runnable, MouseMotionListener 
 	public void run() {
 		Graphics g = getGraphics();
 
-		long lastFPSUpdate = System.nanoTime();
-
 		while (g == null) {
 			g = getGraphics();
 			try {
@@ -260,27 +289,69 @@ public class ImageTest extends JApplet implements Runnable, MouseMotionListener 
 			}
 		}
 
-		int frame = 0;
+		int currentFrame = 0;
+		int ratio = 256;
+		int delay = 1;
 
-		// not a proper game loop, just using it to draw *around* 50fps
-		while (running) {
-			long time = System.nanoTime();
-			draw();
-			g.drawImage(this.image, 0, 0, getWidth(), getHeight(), null);
-			ft = (System.nanoTime() - time) / 1_000_000.0;
+		for (int n = 0; n < 10; n++) {
+			this.optim[n] = System.currentTimeMillis();
+		}
 
-			frame++;
+		long currentTime;
 
-			if (time - lastFPSUpdate > 1_000_000_000) {
-				fps = frame;
-				frame = 0;
-				lastFPSUpdate = time;
+		while (this.running) {
+			int lastRatio = ratio;
+			int lastDelta = delay;
+
+			ratio = 300;
+			delay = 1;
+			currentTime = System.currentTimeMillis();
+
+			if (this.optim[currentFrame] == 0L) {
+				ratio = lastRatio;
+				delay = lastDelta;
+			} else if (currentTime > this.optim[currentFrame]) {
+				ratio = (int) ((long) (this.deltime * 2560) / (currentTime - this.optim[currentFrame]));
+			}
+
+			if (ratio < 25) {
+				ratio = 25;
+			}
+
+			if (ratio > 256) {
+				ratio = 256;
+				delay = (int) ((long) this.deltime - (currentTime - this.optim[currentFrame]) / 10L);
+			}
+
+			this.optim[currentFrame] = currentTime;
+			currentFrame = (currentFrame + 1) % 10;
+
+			if (delay > 1) {
+				for (int n = 0; n < 10; n++) {
+					if (this.optim[n] != 0L) {
+						this.optim[n] += (long) delay;
+					}
+				}
+			}
+
+			if (delay < 1) {
+				delay = 1;
 			}
 
 			try {
-				Thread.sleep(20);
-			} catch (Exception e) {
+				Thread.sleep((long) delay);
+			} catch (InterruptedException e) {
+
 			}
+
+			if (this.deltime > 0) {
+				this.fps = (ratio * 1000) / (this.deltime * 256);
+			}
+
+			long nano = System.nanoTime();
+			draw();
+			g.drawImage(image, 0, 0, null);
+			this.ft = (System.nanoTime() - nano) / 1_000_000.0;
 		}
 	}
 
