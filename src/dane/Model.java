@@ -32,7 +32,7 @@ public class Model {
 	public static final int NEAR_Z = 50;
 	public static final int FAR_Z = 0x7FFFF;
 
-	public static final int MAX_COMPONENT_COUNT = 1024 * 8;
+	public static final int MAX_COMPONENT_COUNT = 1024 * 12;
 
 	public static boolean[] testTriangleX = new boolean[MAX_COMPONENT_COUNT];
 	public static boolean[] projectTriangle = new boolean[MAX_COMPONENT_COUNT];
