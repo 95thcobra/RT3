@@ -4,6 +4,7 @@ import dane.Graphics2D;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.*;
+import java.util.*;
 import java.util.logging.*;
 import javax.swing.*;
 
@@ -70,8 +71,8 @@ public class ImageTest extends JApplet implements Runnable, MouseMotionListener 
 	int cameraPitch = 128;
 	int cameraYaw;
 	int cameraX;
-	int cameraY = 128;
-	int cameraZ = 256;
+	int cameraY = 0;
+	int cameraZ = 512;
 
 	boolean running;
 
@@ -100,7 +101,7 @@ public class ImageTest extends JApplet implements Runnable, MouseMotionListener 
 		Model.allowInput = true;
 
 		System.out.println("Creating grid");
-		model = new Grid(1024, 64, 64);
+		model = new Cube(256);//new Grid(4096, 64, 64);
 		System.out.println("Grid created");
 
 		// we need bounds before we center
@@ -108,7 +109,7 @@ public class ImageTest extends JApplet implements Runnable, MouseMotionListener 
 		model.translate(-model.maxBoundX / 2, -model.maxBoundY / 2, -model.maxBoundZ / 2);
 
 		for (int i = 0; i < model.vertexCount; i++) {
-			model.vertexY[i] += (int) (Math.random() * 8);
+			model.vertexY[i] += (int) (Math.random() * 64);
 		}
 
 		model.triangleColor = new int[model.triangleCount];
@@ -122,6 +123,7 @@ public class ImageTest extends JApplet implements Runnable, MouseMotionListener 
 		model.colorC = new int[model.triangleCount];
 
 		model.triangleType = new int[model.triangleCount];
+		Arrays.fill(model.triangleType, 1);
 		model.calculateNormals();
 		model.applyLighting(64, 768, -50, -50, -30, true);
 

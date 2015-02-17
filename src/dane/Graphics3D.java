@@ -263,22 +263,28 @@ public class Graphics3D extends Graphics2D {
 	 * @param yC third point y
 	 * @param color the color of the triangle. (in INT24_RGB format)
 	 */
-	// TODO: make it work with zbuffer
-	public static final void fillTriangle(int yA, int yB, int yC, int xA, int xB, int xC, int color) {
+	public static final void fillTriangle(int xA, int yA, int zA, int xB, int yB, int zB, int xC, int yC, int zC, int color) {
 		int slopeAB = 0;
 		int slopeBC = 0;
 		int slopeCA = 0;
 
+		int zSlopeAB = 0;
+		int zSlopeBC = 0;
+		int zSlopeCA = 0;
+
 		if (yB != yA) {
 			slopeAB = (xB - xA << 16) / (yB - yA);
+			zSlopeAB = (zB - zA << 16) / (yB - yA);
 		}
 
 		if (yC != yB) {
 			slopeBC = (xC - xB << 16) / (yC - yB);
+			zSlopeBC = (zC - zB << 16) / (yC - yB);
 		}
 
 		if (yC != yA) {
 			slopeCA = (xA - xC << 16) / (yA - yC);
+			zSlopeCA = (zA - zC << 16) / (yA - yC);
 		}
 
 		// A is above B and C
@@ -303,20 +309,28 @@ public class Graphics3D extends Graphics2D {
 			if (yB < yC) {
 				// xC is now xA and they are both 16.16
 				xC = xA <<= 16;
+				zC = zA <<= 16;
 
 				// A is above our drawing area
 				if (yA < 0) {
 					xC -= slopeCA * yA;
+					zC -= zSlopeCA * yA;
+
 					xA -= slopeAB * yA;
+					zA -= zSlopeAB * yA;
+
 					yA = 0;
 				}
 
 				// 32.0 -> 16.16
 				xB <<= 16;
+				zB <<= 16;
 
 				// B is above our drawing area
 				if (yB < 0) {
 					xB -= slopeBC * yB;
+					zB -= zSlopeBC * yB;
+
 					yB = 0;
 				}
 
@@ -371,13 +385,15 @@ public class Graphics3D extends Graphics2D {
 					// While we still have a vertical space between A and B
 					while (--yB >= 0) {
 						// Draw our scanline from xC (start) to xA (end) starting at the offset provided by yA
-						drawScanline(Graphics2D.target, yA, color, 0, xC >> 16, xA >> 16);
+						drawScanline(Graphics2D.target, yA, 0, xC >> 16, xA >> 16, zC, zA, color);
 
 						// approach xC to xA
 						xC += slopeCA;
+						zC += zSlopeCA;
 
 						// approach xA to xB
 						xA += slopeAB;
+						zA += zSlopeAB;
 
 						// Go down a line
 						yA += Graphics2D.targetWidth;
@@ -386,13 +402,15 @@ public class Graphics3D extends Graphics2D {
 					// While we still have a vertical space between B and C
 					while (--yC >= 0) {
 						// Draw our scanline from xC (start) to xB (end) starting at the offset provided by yA
-						drawScanline(Graphics2D.target, yA, color, 0, xC >> 16, xB >> 16);
+						drawScanline(Graphics2D.target, yA, 0, xC >> 16, xB >> 16, zC, zB, color);
 
 						// Approach C to A horizontally
 						xC += slopeCA;
+						zC += zSlopeCA;
 
 						// Approach B to C horizontally
 						xB += slopeBC;
+						zB += zSlopeBC;
 
 						// Move down a line
 						yA += Graphics2D.targetWidth;
@@ -410,13 +428,15 @@ public class Graphics3D extends Graphics2D {
 					// While we still have a vertical space between A and B
 					while (--yB >= 0) {
 						// Draw our scanline from xC (start) to xC (end) starting at the offset provided by yA
-						drawScanline(Graphics2D.target, yA, color, 0, xA >> 16, xC >> 16);
+						drawScanline(Graphics2D.target, yA, 0, xA >> 16, xC >> 16, zA, zC, color);
 
 						// Approach C to A horizontally
 						xC += slopeCA;
+						zC += zSlopeCA;
 
 						// Aproach A to B horizontally
 						xA += slopeAB;
+						zA += zSlopeAB;
 
 						// Move down a line
 						yA += Graphics2D.targetWidth;
@@ -425,13 +445,15 @@ public class Graphics3D extends Graphics2D {
 					// While we still have a vertical space between B and C
 					while (--yC >= 0) {
 						// Draw our scanline from xB (start) to xC (end) starting at the offset provided by yA
-						drawScanline(Graphics2D.target, yA, color, 0, xB >> 16, xC >> 16);
+						drawScanline(Graphics2D.target, yA, 0, xB >> 16, xC >> 16, zB, zC, color);
 
 						// Approach C to A horizontally
 						xC += slopeCA;
+						zC += zSlopeCA;
 
 						// Approach B to C horizontally
 						xB += slopeBC;
+						zB += zSlopeBC;
 
 						// Move down a line
 						yA += Graphics2D.targetWidth;
@@ -439,17 +461,24 @@ public class Graphics3D extends Graphics2D {
 				}
 			} else {
 				xB = xA <<= 16;
+				zB = zA <<= 16;
 
 				if (yA < 0) {
 					xB -= slopeCA * yA;
+					zB -= zSlopeCA * yA;
+
 					xA -= slopeAB * yA;
+					zA -= zSlopeAB * yA;
+
 					yA = 0;
 				}
 
 				xC <<= 16;
+				zC <<= 16;
 
 				if (yC < 0) {
 					xC -= slopeBC * yC;
+					zC -= zSlopeBC * yC;
 					yC = 0;
 				}
 
@@ -460,19 +489,25 @@ public class Graphics3D extends Graphics2D {
 					yA = offsets[yA];
 
 					while (--yC >= 0) {
-						drawScanline(Graphics2D.target, yA, color, 0, xB >> 16, xA >> 16);
+						drawScanline(Graphics2D.target, yA, 0, xB >> 16, xA >> 16, zB, zA, color);
 
 						xB += slopeCA;
+						zB += zSlopeCA;
+
 						xA += slopeAB;
+						zA += zSlopeAB;
 
 						yA += Graphics2D.targetWidth;
 					}
 
 					while (--yB >= 0) {
-						drawScanline(Graphics2D.target, yA, color, 0, xC >> 16, xA >> 16);
+						drawScanline(Graphics2D.target, yA, 0, xC >> 16, xA >> 16, zC, zA, color);
 
 						xC += slopeBC;
+						zC += zSlopeBC;
+
 						xA += slopeAB;
+						zA += zSlopeAB;
 
 						yA += Graphics2D.targetWidth;
 					}
@@ -482,19 +517,25 @@ public class Graphics3D extends Graphics2D {
 					yA = offsets[yA];
 
 					while (--yC >= 0) {
-						drawScanline(Graphics2D.target, yA, color, 0, xA >> 16, xB >> 16);
+						drawScanline(Graphics2D.target, yA, 0, xA >> 16, xB >> 16, zA, zB, color);
 
 						xB += slopeCA;
+						zB += zSlopeCA;
+
 						xA += slopeAB;
+						zA += zSlopeAB;
 
 						yA += Graphics2D.targetWidth;
 					}
 
 					while (--yB >= 0) {
-						drawScanline(Graphics2D.target, yA, color, 0, xA >> 16, xC >> 16);
+						drawScanline(Graphics2D.target, yA, 0, xA >> 16, xC >> 16, zA, zC, color);
 
 						xC += slopeBC;
+						zC += zSlopeBC;
+
 						xA += slopeAB;
+						zA += zSlopeAB;
 
 						yA += Graphics2D.targetWidth;
 					}
@@ -513,17 +554,25 @@ public class Graphics3D extends Graphics2D {
 
 				if (yC < yA) {
 					xA = xB <<= 16;
+					zA = zB <<= 16;
 
 					if (yB < 0) {
 						xA -= slopeAB * yB;
+						zA -= zSlopeAB * yB;
+
 						xB -= slopeBC * yB;
+						zB -= zSlopeBC * yB;
+
 						yB = 0;
 					}
 
 					xC <<= 16;
+					zC <<= 16;
 
 					if (yC < 0) {
 						xC -= slopeCA * yC;
+						zC -= zSlopeCA * yC;
+
 						yC = 0;
 					}
 
@@ -534,19 +583,25 @@ public class Graphics3D extends Graphics2D {
 						yB = offsets[yB];
 
 						while (--yC >= 0) {
-							drawScanline(Graphics2D.target, yB, color, 0, xA >> 16, xB >> 16);
+							drawScanline(Graphics2D.target, yB, 0, xA >> 16, xB >> 16, zA, zB, color);
 
 							xA += slopeAB;
+							zA += zSlopeAB;
+
 							xB += slopeBC;
+							zB += zSlopeBC;
 
 							yB += Graphics2D.targetWidth;
 						}
 
 						while (--yA >= 0) {
-							drawScanline(Graphics2D.target, yB, color, 0, xA >> 16, xC >> 16);
+							drawScanline(Graphics2D.target, yB, 0, xA >> 16, xC >> 16, zA, zC, color);
 
 							xA += slopeAB;
+							zA += zSlopeAB;
+
 							xC += slopeCA;
+							zC += zSlopeCA;
 
 							yB += Graphics2D.targetWidth;
 						}
@@ -557,35 +612,50 @@ public class Graphics3D extends Graphics2D {
 						yB = offsets[yB];
 
 						while (--yC >= 0) {
-							drawScanline(Graphics2D.target, yB, color, 0, xB >> 16, xA >> 16);
+							drawScanline(Graphics2D.target, yB, 0, xB >> 16, xA >> 16, zB, zA, color);
 
 							xA += slopeAB;
+							zA += zSlopeAB;
+
 							xB += slopeBC;
+							zB += zSlopeBC;
 
 							yB += Graphics2D.targetWidth;
 						}
+
 						while (--yA >= 0) {
-							drawScanline(Graphics2D.target, yB, color, 0, xC >> 16, xA >> 16);
+							drawScanline(Graphics2D.target, yB, 0, xC >> 16, xA >> 16, zC, zA, color);
 
 							xA += slopeAB;
+							zA += zSlopeAB;
+
 							xC += slopeCA;
+							zC += zSlopeCA;
 
 							yB += Graphics2D.targetWidth;
 						}
 					}
 				} else {
 					xC = xB <<= 16;
+					zC = zB <<= 16;
 
 					if (yB < 0) {
 						xC -= slopeAB * yB;
+						zC -= zSlopeAB * yB;
+
 						xB -= slopeBC * yB;
+						zB -= zSlopeBC * yB;
+
 						yB = 0;
 					}
 
 					xA <<= 16;
+					zA <<= 16;
 
 					if (yA < 0) {
 						xA -= slopeCA * yA;
+						zA -= zSlopeCA * yA;
+
 						yA = 0;
 					}
 
@@ -595,19 +665,25 @@ public class Graphics3D extends Graphics2D {
 						yB = offsets[yB];
 
 						while (--yA >= 0) {
-							drawScanline(Graphics2D.target, yB, color, 0, xC >> 16, xB >> 16);
+							drawScanline(Graphics2D.target, yB, 0, xC >> 16, xB >> 16, zC, zB, color);
 
 							xC += slopeAB;
+							zC += zSlopeAB;
+
 							xB += slopeBC;
+							zB += zSlopeBC;
 
 							yB += Graphics2D.targetWidth;
 						}
 
 						while (--yC >= 0) {
-							drawScanline(Graphics2D.target, yB, color, 0, xA >> 16, xB >> 16);
+							drawScanline(Graphics2D.target, yB, 0, xA >> 16, xB >> 16, zA, zB, color);
 
 							xA += slopeCA;
+							zA += zSlopeCA;
+
 							xB += slopeBC;
+							zB += zSlopeBC;
 
 							yB += Graphics2D.targetWidth;
 						}
@@ -618,19 +694,25 @@ public class Graphics3D extends Graphics2D {
 						yB = offsets[yB];
 
 						while (--yA >= 0) {
-							drawScanline(Graphics2D.target, yB, color, 0, xB >> 16, xC >> 16);
+							drawScanline(Graphics2D.target, yB, 0, xB >> 16, xC >> 16, zB, zC, color);
 
 							xC += slopeAB;
+							zC += zSlopeAB;
+
 							xB += slopeBC;
+							zB += zSlopeBC;
 
 							yB += Graphics2D.targetWidth;
 						}
 
 						while (--yC >= 0) {
-							drawScanline(Graphics2D.target, yB, color, 0, xB >> 16, xA >> 16);
+							drawScanline(Graphics2D.target, yB, 0, xB >> 16, xA >> 16, zB, zA, color);
 
 							xA += slopeCA;
+							zA += zSlopeCA;
+
 							xB += slopeBC;
+							zB += zSlopeBC;
 
 							yB += Graphics2D.targetWidth;
 						}
@@ -648,17 +730,25 @@ public class Graphics3D extends Graphics2D {
 
 			if (yA < yB) {
 				xB = xC <<= 16;
+				zB = zC <<= 16;
 
 				if (yC < 0) {
 					xB -= slopeBC * yC;
+					zB -= zSlopeBC * yC;
+
 					xC -= slopeCA * yC;
+					zC -= zSlopeCA * yC;
+
 					yC = 0;
 				}
 
 				xA <<= 16;
+				zA <<= 16;
 
 				if (yA < 0) {
 					xA -= slopeAB * yA;
+					zA -= zSlopeAB * yA;
+
 					yA = 0;
 				}
 
@@ -669,19 +759,25 @@ public class Graphics3D extends Graphics2D {
 					yC = offsets[yC];
 
 					while (--yA >= 0) {
-						drawScanline(Graphics2D.target, yC, color, 0, xB >> 16, xC >> 16);
+						drawScanline(Graphics2D.target, yC, 0, xB >> 16, xC >> 16, zB, zC, color);
 
 						xB += slopeBC;
+						zB += zSlopeBC;
+
 						xC += slopeCA;
+						zC += zSlopeCA;
 
 						yC += Graphics2D.targetWidth;
 					}
 
 					while (--yB >= 0) {
-						drawScanline(Graphics2D.target, yC, color, 0, xB >> 16, xA >> 16);
+						drawScanline(Graphics2D.target, yC, 0, xB >> 16, xA >> 16, zB, zA, color);
 
 						xB += slopeBC;
+						zB += zSlopeBC;
+
 						xA += slopeAB;
+						zA += zSlopeAB;
 
 						yC += Graphics2D.targetWidth;
 					}
@@ -692,36 +788,50 @@ public class Graphics3D extends Graphics2D {
 					yC = offsets[yC];
 
 					while (--yA >= 0) {
-						drawScanline(Graphics2D.target, yC, color, 0, xC >> 16, xB >> 16);
+						drawScanline(Graphics2D.target, yC, 0, xC >> 16, xB >> 16, zC, zB, color);
 
 						xB += slopeBC;
+						zB += zSlopeBC;
+
 						xC += slopeCA;
+						zC += zSlopeCA;
 
 						yC += Graphics2D.targetWidth;
 					}
 
 					while (--yB >= 0) {
-						drawScanline(Graphics2D.target, yC, color, 0, xA >> 16, xB >> 16);
+						drawScanline(Graphics2D.target, yC, 0, xA >> 16, xB >> 16, zA, zB, color);
 
 						xB += slopeBC;
+						zB += zSlopeBC;
+
 						xA += slopeAB;
+						zA += zSlopeAB;
 
 						yC += Graphics2D.targetWidth;
 					}
 				}
 			} else {
 				xA = xC <<= 16;
+				zA = zC <<= 16;
 
 				if (yC < 0) {
 					xA -= slopeBC * yC;
+					zA -= zSlopeBC * yC;
+
 					xC -= slopeCA * yC;
+					zC -= zSlopeCA * yC;
+
 					yC = 0;
 				}
 
 				xB <<= 16;
+				zB <<= 16;
 
 				if (yB < 0) {
 					xB -= slopeAB * yB;
+					zB -= zSlopeAB * yB;
+
 					yB = 0;
 				}
 
@@ -732,19 +842,25 @@ public class Graphics3D extends Graphics2D {
 					yC = offsets[yC];
 
 					while (--yB >= 0) {
-						drawScanline(Graphics2D.target, yC, color, 0, xA >> 16, xC >> 16);
+						drawScanline(Graphics2D.target, yC, 0, xA >> 16, xC >> 16, zA, zC, color);
 
 						xA += slopeBC;
+						zA += zSlopeBC;
+
 						xC += slopeCA;
+						zC += zSlopeCA;
 
 						yC += Graphics2D.targetWidth;
 					}
 
 					while (--yA >= 0) {
-						drawScanline(Graphics2D.target, yC, color, 0, xB >> 16, xC >> 16);
+						drawScanline(Graphics2D.target, yC, 0, xB >> 16, xC >> 16, zB, zC, color);
 
 						xB += slopeAB;
+						zB += zSlopeAB;
+
 						xC += slopeCA;
+						zC += zSlopeCA;
 
 						yC += Graphics2D.targetWidth;
 					}
@@ -754,19 +870,25 @@ public class Graphics3D extends Graphics2D {
 					yC = offsets[yC];
 
 					while (--yB >= 0) {
-						drawScanline(Graphics2D.target, yC, color, 0, xC >> 16, xA >> 16);
+						drawScanline(Graphics2D.target, yC, 0, xC >> 16, xA >> 16, zC, zA, color);
 
 						xA += slopeBC;
+						zA += zSlopeBC;
+
 						xC += slopeCA;
+						zC += zSlopeCA;
 
 						yC += Graphics2D.targetWidth;
 					}
 
 					while (--yA >= 0) {
-						drawScanline(Graphics2D.target, yC, color, 0, xC >> 16, xB >> 16);
+						drawScanline(Graphics2D.target, yC, 0, xC >> 16, xB >> 16, zC, zB, color);
 
 						xB += slopeAB;
+						zB += zSlopeAB;
+
 						xC += slopeCA;
+						zC += zSlopeCA;
 
 						yC += Graphics2D.targetWidth;
 					}
@@ -785,58 +907,58 @@ public class Graphics3D extends Graphics2D {
 	 * @param xA the start x.
 	 * @param xB the end x.
 	 */
-	// TODO: make it work with zbuffer
-	public static final void drawScanline(int[] dst, int off, int rgb, int length, int xA, int xB) {
+	public static final void drawScanline(int[] dst, int off, int length, int xA, int xB, int zA, int zB, int rgb) {
+		if (xA >= xB) {
+			return;
+		}
+
+		int zSlope = (zB - zA) / (xB - xA);
+
 		if (testX) {
 			if (xB > Graphics2D.rightX) {
 				xB = Graphics2D.rightX;
 			}
 
 			if (xA < 0) {
+				zA -= xA * zSlope;
 				xA = 0;
+			}
+
+			if (xA >= xB) {
+				return;
 			}
 		}
 
-		if (xA >= xB) {
-			return;
-		}
+		length = xB - xA;
 
 		off += xA;
-		length = xB - xA >> 2;
 
 		if (alpha == 0) {
 			while (--length >= 0) {
-				dst[off++] = rgb;
-				dst[off++] = rgb;
-				dst[off++] = rgb;
-				dst[off++] = rgb;
+				if (zA <= zBuffer[off]) {
+					zBuffer[off] = zA;
+					dst[off++] = rgb;
+				} else {
+					off++;
+				}
+				zA += zSlope;
 			}
-			length = xB - xA & 0x3;
 
-			while (--length >= 0) {
-				dst[off++] = rgb;
-			}
+			zA += zSlope;
 		} else {
 			int alphaA = alpha;
 			int alphaB = 256 - alpha;
 			rgb = (((rgb & 0xFF00FF) * alphaB >> 8 & 0xFF00FF) + ((rgb & 0xFF00) * alphaB >> 8 & 0xFF00));
 
 			while (--length >= 0) {
-				dst[off] = (rgb + ((dst[off] & 0xFF00FF) * alphaA >> 8 & 0xFF00FF) + ((dst[off] & 0xFF00) * alphaA >> 8 & 0xFF00));
-				off++;
-				dst[off] = (rgb + ((dst[off] & 0xFF00FF) * alphaA >> 8 & 0xFF00FF) + ((dst[off] & 0xFF00) * alphaA >> 8 & 0xFF00));
-				off++;
-				dst[off] = (rgb + ((dst[off] & 0xFF00FF) * alphaA >> 8 & 0xFF00FF) + ((dst[off] & 0xFF00) * alphaA >> 8 & 0xFF00));
-				off++;
-				dst[off] = (rgb + ((dst[off] & 0xFF00FF) * alphaA >> 8 & 0xFF00FF) + ((dst[off] & 0xFF00) * alphaA >> 8 & 0xFF00));
-				off++;
-			}
-
-			length = xB - xA & 0x3;
-
-			while (--length >= 0) {
-				dst[off] = (rgb + ((dst[off] & 0xFF00FF) * alphaA >> 8 & 0xFF00FF) + ((dst[off] & 0xFF00) * alphaA >> 8 & 0xFF00));
-				off++;
+				if (zA <= zBuffer[off]) {
+					zBuffer[off] = zA;
+					dst[off] = (rgb + ((dst[off] & 0xFF00FF) * alphaA >> 8 & 0xFF00FF) + ((dst[off] & 0xFF00) * alphaA >> 8 & 0xFF00));
+					off++;
+				} else {
+					off++;
+				}
+				zA += zSlope;
 			}
 		}
 	}

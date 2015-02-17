@@ -186,11 +186,11 @@ public class Graphics2D {
 			x = ovalPointX[i - 1];
 			y = ovalPointY[i - 1];
 
-			Graphics3D.fillTriangle(cy, y, ovalPointY[i], cx, x, ovalPointX[i], rgb);
+			Graphics3D.fillTriangle(cx, cy, 0, x, y, 0, ovalPointX[i], ovalPointY[i], 0, rgb);
 		}
 
 		// fill from last point to first point (last triangle)
-		Graphics3D.fillTriangle(cy, ovalPointY[0], ovalPointY[points - 1], cx, ovalPointX[0], ovalPointX[points - 1], rgb);
+		Graphics3D.fillTriangle(cx, cy, 0, ovalPointX[0], ovalPointY[0], 0, ovalPointX[points - 1], ovalPointY[points - 1], 0, rgb);
 	}
 
 	/*
