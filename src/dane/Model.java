@@ -45,10 +45,10 @@ public class Model {
 	public static int[] projectSceneY = new int[MAX_COMPONENT_COUNT];
 	public static int[] projectSceneZ = new int[MAX_COMPONENT_COUNT];
 
-	public static int[] tmpX = new int[10];
-	public static int[] tmpY = new int[10];
-	public static int[] tmpZ = new int[10];
-	public static int[] tmpColor = new int[10];
+	public static int[] tmpX = new int[4];
+	public static int[] tmpY = new int[4];
+	public static int[] tmpZ = new int[4];
+	public static int[] tmpColor = new int[4];
 
 	public static int[] sin = Graphics3D.sin;
 	public static int[] cos = Graphics3D.cos;
@@ -728,7 +728,7 @@ public class Model {
 
 	private void drawTriangle(int index) {
 		if (projectTriangle[index]) {
-			drawProjectedTriangle(index);
+			drawCorrectedTriangle(index);
 		} else {
 			int a = triangleVertexA[index];
 			int b = triangleVertexB[index];
@@ -758,7 +758,7 @@ public class Model {
 		}
 	}
 
-	private void drawProjectedTriangle(int index) {
+	private void drawCorrectedTriangle(int index) {
 		int cx = Graphics3D.center3dX;
 		int cy = Graphics3D.center3dY;
 		int n = 0;
@@ -785,7 +785,7 @@ public class Model {
 				int interpolant = (NEAR_Z - zA) * oneOverFixed1616[zC - zA];
 				tmpX[n] = cx + ((x + (((projectSceneX[vC] - x) * interpolant) >> 16)) << 9) / NEAR_Z;
 				tmpY[n] = cy + ((y + (((projectSceneY[vC] - y) * interpolant) >> 16)) << 9) / NEAR_Z;
-				tmpZ[n] = zA;
+				tmpZ[n] = NEAR_Z - zA;
 				tmpColor[n++] = color + ((colorC[index] - color) * interpolant >> 16);
 			}
 
@@ -793,7 +793,7 @@ public class Model {
 				int interpolant = (NEAR_Z - zA) * oneOverFixed1616[zB - zA];
 				tmpX[n] = (cx + (x + ((projectSceneX[vB] - x) * interpolant >> 16) << 9) / NEAR_Z);
 				tmpY[n] = (cy + (y + ((projectSceneY[vB] - y) * interpolant >> 16) << 9) / NEAR_Z);
-				tmpZ[n] = zA;
+				tmpZ[n] = NEAR_Z - zA;
 				tmpColor[n++] = color + ((colorB[index] - color) * interpolant >> 16);
 			}
 		}
@@ -809,19 +809,19 @@ public class Model {
 			int color = colorB[index];
 
 			if (zA >= NEAR_Z) {
-				int mul = (NEAR_Z - zB) * oneOverFixed1616[zA - zB];
-				tmpX[n] = (cx + (x + ((projectSceneX[vA] - x) * mul >> 16) << 9) / NEAR_Z);
-				tmpY[n] = (cy + (y + ((projectSceneY[vA] - y) * mul >> 16) << 9) / NEAR_Z);
-				tmpZ[n] = zB;
-				tmpColor[n++] = color + ((colorA[index] - color) * mul >> 16);
+				int interpolant = (NEAR_Z - zB) * oneOverFixed1616[zA - zB];
+				tmpX[n] = (cx + (x + ((projectSceneX[vA] - x) * interpolant >> 16) << 9) / NEAR_Z);
+				tmpY[n] = (cy + (y + ((projectSceneY[vA] - y) * interpolant >> 16) << 9) / NEAR_Z);
+				tmpZ[n] = NEAR_Z;
+				tmpColor[n++] = color + ((colorA[index] - color) * interpolant >> 16);
 			}
 
 			if (zC >= NEAR_Z) {
-				int mul = (NEAR_Z - zB) * oneOverFixed1616[zC - zB];
-				tmpX[n] = (cx + (x + ((projectSceneX[vC] - x) * mul >> 16) << 9) / NEAR_Z);
-				tmpY[n] = (cy + (y + ((projectSceneY[vC] - y) * mul >> 16) << 9) / NEAR_Z);
-				tmpZ[n] = zB;
-				tmpColor[n++] = color + ((colorC[index] - color) * mul >> 16);
+				int interpolant = (NEAR_Z - zB) * oneOverFixed1616[zC - zB];
+				tmpX[n] = (cx + (x + ((projectSceneX[vC] - x) * interpolant >> 16) << 9) / NEAR_Z);
+				tmpY[n] = (cy + (y + ((projectSceneY[vC] - y) * interpolant >> 16) << 9) / NEAR_Z);
+				tmpZ[n] = NEAR_Z;
+				tmpColor[n++] = color + ((colorC[index] - color) * interpolant >> 16);
 			}
 		}
 
@@ -836,20 +836,19 @@ public class Model {
 			int color = colorC[index];
 
 			if (zB >= NEAR_Z) {
-				int mul = (NEAR_Z - zC) * (oneOverFixed1616[zB - zC]);
-
-				tmpX[n] = (cx + (x + (((projectSceneX[vB] - x) * mul) >> 16) << 9) / NEAR_Z);
-				tmpY[n] = (cy + (y + (((projectSceneY[vB] - y) * mul) >> 16) << 9) / NEAR_Z);
-				tmpZ[n] = zC;
-				tmpColor[n++] = color + ((colorB[index] - color) * mul >> 16);
+				int interpolant = (NEAR_Z - zC) * (oneOverFixed1616[zB - zC]);
+				tmpX[n] = (cx + (x + (((projectSceneX[vB] - x) * interpolant) >> 16) << 9) / NEAR_Z);
+				tmpY[n] = (cy + (y + (((projectSceneY[vB] - y) * interpolant) >> 16) << 9) / NEAR_Z);
+				tmpZ[n] = NEAR_Z;
+				tmpColor[n++] = color + ((colorB[index] - color) * interpolant >> 16);
 			}
 
 			if (zA >= NEAR_Z) {
-				int mul = (NEAR_Z - zC) * oneOverFixed1616[zA - zC];
-				tmpX[n] = (cx + (x + (((projectSceneX[vA] - x) * mul) >> 16) << 9) / NEAR_Z);
-				tmpY[n] = (cy + (y + (((projectSceneY[vA] - y) * mul) >> 16) << 9) / NEAR_Z);
-				tmpZ[n] = zC;
-				tmpColor[n++] = color + ((colorA[index] - color) * mul >> 16);
+				int interpolant = (NEAR_Z - zC) * oneOverFixed1616[zA - zC];
+				tmpX[n] = (cx + (x + (((projectSceneX[vA] - x) * interpolant) >> 16) << 9) / NEAR_Z);
+				tmpY[n] = (cy + (y + (((projectSceneY[vA] - y) * interpolant) >> 16) << 9) / NEAR_Z);
+				tmpZ[n] = NEAR_Z;
+				tmpColor[n++] = color + ((colorA[index] - color) * interpolant >> 16);
 			}
 		}
 
@@ -864,7 +863,11 @@ public class Model {
 		if (((xA - xB) * (yC - yB) - (yA - yB) * (xC - xB)) > 0) {
 			Graphics3D.testX = false;
 
-			if (n == 3) {
+			if (n == 0) {
+				Graphics2D.fillRect(xA - 1, yA - 1, 3, 3, 0xFF0000);
+				Graphics2D.fillRect(xB - 1, yB - 1, 3, 3, 0xFF00);
+				Graphics2D.fillRect(xC - 1, yC - 1, 3, 3, 0xFF);
+			} else if (n == 3) {
 				if (xA < 0 || xB < 0 || xC < 0 || xA > Graphics2D.rightX || xB > Graphics2D.rightX || xC > Graphics2D.rightX) {
 					Graphics3D.testX = true;
 				}
@@ -882,9 +885,7 @@ public class Model {
 				} else if (type == 1) {
 					Graphics3D.fillTriangle(xA, yA, zA, xB, yB, zB, xC, yC, zC, palette[colorA[index]]);
 				}
-			}
-
-			if (n == 4) {
+			} else if (n == 4) {
 				if (xA < 0 || xB < 0 || xC < 0 || xA > Graphics2D.rightX || xB > Graphics2D.rightX || xC > Graphics2D.rightX || tmpX[3] < 0 || tmpX[3] > Graphics2D.rightX) {
 					Graphics3D.testX = true;
 				}

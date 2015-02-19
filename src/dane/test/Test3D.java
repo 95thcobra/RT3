@@ -38,7 +38,7 @@ public class Test3D extends TestApplet {
 		f.add(test);
 		f.setResizable(false);
 
-		test.initialize(1024, 768);
+		test.initialize(512 * 2, 334 * 2);
 		f.pack();
 
 		f.setLocationRelativeTo(null);
@@ -52,28 +52,28 @@ public class Test3D extends TestApplet {
 	int cameraPitch = 128;
 	int cameraYaw;
 	int cameraX;
-	int cameraY = 2048;
-	int cameraZ = 8192;
+	int cameraY = 512;
+	int cameraZ = 1024;
 
 	public Test3D() {
 		long time = System.nanoTime();
-		model = new Grid(13312, 104, 104);
+		model = new Grid(1024, 8, 8);
 		time = System.nanoTime() - time;
 
 		System.out.println("Grid took " + String.format("%sms", time / 1_000_000.0) + " to create.");
+
+		for (int i = 0; i < model.vertexCount; i++) {
+			model.vertexY[i] += (int) (Math.random() * 256);
+		}
 
 		// we need bounds before we center
 		model.calculateBoundaries();
 		model.translate(-model.maxBoundX / 2, -model.minBoundY / 2, -model.maxBoundZ / 2);
 
-		for (int i = 0; i < model.vertexCount; i++) {
-			model.vertexY[i] += (int) (Math.random() * 128);
-		}
-
 		model.triangleColor = new int[model.triangleCount];
 
 		for (int i = 0; i < model.triangleCount; i++) {
-			model.triangleColor[i] = (17 << 10) | (3 << 7) | 48;
+			model.triangleColor[i] = ((14 + (int) (Math.random() * 44)) << 10) | (3 << 7) | 48;
 		}
 
 		model.colorA = new int[model.triangleCount];
@@ -145,7 +145,7 @@ public class Test3D extends TestApplet {
 			dragY = mouseY;
 		}
 
-		int speed = 128;
+		int speed = 16;
 		int backward = 0;
 		int left = 0;
 
