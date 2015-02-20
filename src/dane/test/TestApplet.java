@@ -69,7 +69,6 @@ public abstract class TestApplet extends JApplet implements Runnable, KeyListene
 		Graphics3D.setOffsets();
 		Graphics3D.setZBuffer(width, height);
 		Graphics3D.createPalette(1.0);
-		Graphics3D.texturedShading = false;
 		Model.allowInput = true;
 
 		active = true;

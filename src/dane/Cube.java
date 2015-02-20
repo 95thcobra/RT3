@@ -25,33 +25,47 @@ package dane;
 public class Cube extends Model {
 
 	public Cube(int size) {
-		int a = addVertex(0, 0, 0);
-		int b = addVertex(size, 0, 0);
-		int c = addVertex(0, 0, size);
-		int d = addVertex(size, 0, size);
+		this.triangleCount = 6 * 2; // 6 sides each with 2 triangles
+		this.vertexCount = 8; // 8 corners
 
-		int e = addVertex(0, size, 0);
-		int f = addVertex(size, size, 0);
-		int g = addVertex(0, size, size);
-		int h = addVertex(size, size, size);
+		this.triangleVertexA = new int[triangleCount];
+		this.triangleVertexB = new int[triangleCount];
+		this.triangleVertexC = new int[triangleCount];
 
-		addTriangle(a, b, c);
-		addTriangle(d, b, c);
+		this.vertexX = new int[vertexCount];
+		this.vertexY = new int[vertexCount];
+		this.vertexZ = new int[vertexCount];
 
-		addTriangle(e, f, g);
-		addTriangle(h, f, g);
+		// a b
+		// |\|
+		// c d
+		int a = setVertex(0, 0, 0, 0);
+		int b = setVertex(1, size, 0, 0);
+		int c = setVertex(2, 0, 0, size);
+		int d = setVertex(3, size, 0, size);
 
-		addTriangle(a, e, b);
-		addTriangle(f, e, b);
+		int e = setVertex(4, 0, size, 0);
+		int f = setVertex(5, size, size, 0);
+		int g = setVertex(6, 0, size, size);
+		int h = setVertex(7, size, size, size);
 
-		addTriangle(b, f, d);
-		addTriangle(h, f, d);
+		setTriangle(0, c, a, d);
+		setTriangle(1, a, b, d);
 
-		addTriangle(d, h, c);
-		addTriangle(g, h, c);
+		setTriangle(2, g, e, f);
+		setTriangle(3, h, f, g);
 
-		addTriangle(g, c, e);
-		addTriangle(a, c, e);
+		setTriangle(4, a, e, b);
+		setTriangle(5, f, e, b);
+
+		setTriangle(6, b, f, d);
+		setTriangle(7, h, f, d);
+
+		setTriangle(8, d, h, c);
+		setTriangle(9, g, h, c);
+
+		setTriangle(10, g, c, e);
+		setTriangle(11, a, c, e);
 	}
 
 }

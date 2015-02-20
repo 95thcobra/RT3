@@ -39,11 +39,10 @@ public class Model {
 
 	public static int[] vertexScreenX = new int[MAX_COMPONENT_COUNT];
 	public static int[] vertexScreenY = new int[MAX_COMPONENT_COUNT];
-	public static int[] vertexDepth = new int[MAX_COMPONENT_COUNT];
 
 	public static int[] projectSceneX = new int[MAX_COMPONENT_COUNT];
 	public static int[] projectSceneY = new int[MAX_COMPONENT_COUNT];
-	public static int[] projectSceneZ = new int[MAX_COMPONENT_COUNT];
+	public static int[] vertexDepth = new int[MAX_COMPONENT_COUNT];
 
 	public static int[] tmpX = new int[4];
 	public static int[] tmpY = new int[4];
@@ -133,16 +132,18 @@ public class Model {
 		return triangleCount++;
 	}
 
-	public final void setVertex(int index, int x, int y, int z) {
+	public final int setVertex(int index, int x, int y, int z) {
 		vertexX[index] = x;
 		vertexY[index] = y;
 		vertexZ[index] = z;
+		return index;
 	}
 
-	public final void setTriangle(int index, int a, int b, int c) {
+	public final int setTriangle(int index, int a, int b, int c) {
 		triangleVertexA[index] = a;
 		triangleVertexB[index] = b;
 		triangleVertexC[index] = c;
+		return index;
 	}
 
 	public void invert() {
@@ -518,7 +519,7 @@ public class Model {
 			z = y * cameraPitchSine + z * cameraPitchCosine >> 16;
 			y = x0;
 
-			vertexDepth[v] = z - depth;
+			vertexDepth[v] = z;
 			vertexScreenX[v] = centerX + (x << 9) / z;
 			vertexScreenY[v] = centerY + (y << 9) / z;
 		}
@@ -668,7 +669,7 @@ public class Model {
 			z = y * cameraPitchSine + z * cameraPitchCosine >> 16;
 			y = w;
 
-			vertexDepth[v] = z - farZ;
+			vertexDepth[v] = z;
 
 			if (z >= NEAR_Z) {
 				vertexScreenX[v] = centerX + (x << 9) / z;
@@ -681,7 +682,6 @@ public class Model {
 			if (project) {
 				projectSceneX[v] = x;
 				projectSceneY[v] = y;
-				projectSceneZ[v] = z;
 			}
 		}
 
@@ -767,9 +767,9 @@ public class Model {
 		int vB = triangleVertexB[index];
 		int vC = triangleVertexC[index];
 
-		int zA = projectSceneZ[vA];
-		int zB = projectSceneZ[vB];
-		int zC = projectSceneZ[vC];
+		int zA = vertexDepth[vA];
+		int zB = vertexDepth[vB];
+		int zC = vertexDepth[vC];
 
 		if (zA >= NEAR_Z) {
 			tmpX[n] = vertexScreenX[vA];
@@ -785,7 +785,7 @@ public class Model {
 				int interpolant = (NEAR_Z - zA) * oneOverFixed1616[zC - zA];
 				tmpX[n] = cx + ((x + (((projectSceneX[vC] - x) * interpolant) >> 16)) << 9) / NEAR_Z;
 				tmpY[n] = cy + ((y + (((projectSceneY[vC] - y) * interpolant) >> 16)) << 9) / NEAR_Z;
-				tmpZ[n] = NEAR_Z - zA;
+				tmpZ[n] = zA;
 				tmpColor[n++] = color + ((colorC[index] - color) * interpolant >> 16);
 			}
 
@@ -793,7 +793,7 @@ public class Model {
 				int interpolant = (NEAR_Z - zA) * oneOverFixed1616[zB - zA];
 				tmpX[n] = (cx + (x + ((projectSceneX[vB] - x) * interpolant >> 16) << 9) / NEAR_Z);
 				tmpY[n] = (cy + (y + ((projectSceneY[vB] - y) * interpolant >> 16) << 9) / NEAR_Z);
-				tmpZ[n] = NEAR_Z - zA;
+				tmpZ[n] = zA;
 				tmpColor[n++] = color + ((colorB[index] - color) * interpolant >> 16);
 			}
 		}
@@ -812,7 +812,7 @@ public class Model {
 				int interpolant = (NEAR_Z - zB) * oneOverFixed1616[zA - zB];
 				tmpX[n] = (cx + (x + ((projectSceneX[vA] - x) * interpolant >> 16) << 9) / NEAR_Z);
 				tmpY[n] = (cy + (y + ((projectSceneY[vA] - y) * interpolant >> 16) << 9) / NEAR_Z);
-				tmpZ[n] = NEAR_Z;
+				tmpZ[n] = zB;
 				tmpColor[n++] = color + ((colorA[index] - color) * interpolant >> 16);
 			}
 
@@ -820,7 +820,7 @@ public class Model {
 				int interpolant = (NEAR_Z - zB) * oneOverFixed1616[zC - zB];
 				tmpX[n] = (cx + (x + ((projectSceneX[vC] - x) * interpolant >> 16) << 9) / NEAR_Z);
 				tmpY[n] = (cy + (y + ((projectSceneY[vC] - y) * interpolant >> 16) << 9) / NEAR_Z);
-				tmpZ[n] = NEAR_Z;
+				tmpZ[n] = zB;
 				tmpColor[n++] = color + ((colorC[index] - color) * interpolant >> 16);
 			}
 		}
@@ -839,7 +839,7 @@ public class Model {
 				int interpolant = (NEAR_Z - zC) * (oneOverFixed1616[zB - zC]);
 				tmpX[n] = (cx + (x + (((projectSceneX[vB] - x) * interpolant) >> 16) << 9) / NEAR_Z);
 				tmpY[n] = (cy + (y + (((projectSceneY[vB] - y) * interpolant) >> 16) << 9) / NEAR_Z);
-				tmpZ[n] = NEAR_Z;
+				tmpZ[n] = zC;
 				tmpColor[n++] = color + ((colorB[index] - color) * interpolant >> 16);
 			}
 
@@ -847,7 +847,7 @@ public class Model {
 				int interpolant = (NEAR_Z - zC) * oneOverFixed1616[zA - zC];
 				tmpX[n] = (cx + (x + (((projectSceneX[vA] - x) * interpolant) >> 16) << 9) / NEAR_Z);
 				tmpY[n] = (cy + (y + (((projectSceneY[vA] - y) * interpolant) >> 16) << 9) / NEAR_Z);
-				tmpZ[n] = NEAR_Z;
+				tmpZ[n] = zC;
 				tmpColor[n++] = color + ((colorA[index] - color) * interpolant >> 16);
 			}
 		}

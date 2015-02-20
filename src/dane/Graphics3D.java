@@ -104,8 +104,7 @@ public class Graphics3D extends Graphics2D {
 	}
 
 	/**
-	 * Generates the vertical pixel offsets using the width and height set in
-	 * {@link Graphics2D}.
+	 * Generates the vertical pixel offsets using the width and height set in {@link Graphics2D}.
 	 *
 	 * @return the int[] of y offsets.
 	 */
@@ -975,9 +974,8 @@ public class Graphics3D extends Graphics2D {
 	/**
 	 * Fills a triangle using the gouraud shading technique.<p>
 	 * <b>Warning:</b>
-	 * Only interpolates the <i>lightness</i> channel of the provided colors for
-	 * each point. That means you cannot select a different hue or saturation
-	 * between points!</p>
+	 * Only interpolates the <i>lightness</i> channel of the provided colors for each point. That means you cannot
+	 * select a different hue or saturation between points!</p>
 	 *
 	 * @param xA first point x.
 	 * @param yA first point y.
@@ -1592,9 +1590,8 @@ public class Graphics3D extends Graphics2D {
 	/**
 	 * Fills a triangle using the gouraud shading technique.<p>
 	 * <b>Warning:</b>
-	 * Only interpolates the <i>lightness</i> channel of the provided colors for
-	 * each point. That means you cannot select a different hue or saturation
-	 * between points!</p>
+	 * Only interpolates the <i>lightness</i> channel of the provided colors for each point. That means you cannot
+	 * select a different hue or saturation between points!</p>
 	 *
 	 * @param xA first point x
 	 * @param yA first point y
@@ -2324,13 +2321,13 @@ public class Graphics3D extends Graphics2D {
 				while (--length >= 0) {
 					rgb = palette[colorA >> 8];
 					colorA += lightnessSlope;
+					zA += zSlope;
 
 					for (int i = 0; i < 4; i++) {
 						if (zA <= zBuffer[off]) {
 							dst[off] = rgb;
 							zBuffer[off] = zA;
 						}
-						zA += zSlope;
 						off++;
 					}
 				}
@@ -2409,10 +2406,10 @@ public class Graphics3D extends Graphics2D {
 				do {
 					if (zA <= zBuffer[off]) {
 						zBuffer[off] = zA;
-						dst[off++] = palette[colorA >> 8];
-					} else {
-						off++;
+						dst[off] = palette[colorA >> 8];
 					}
+
+					off++;
 					zA += zSlope;
 					colorA += lightnessSlope;
 				} while (--length > 0);
