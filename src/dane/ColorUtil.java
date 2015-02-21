@@ -24,10 +24,6 @@ package dane;
  */
 public class ColorUtil {
 
-	public static void main(String[] args) {
-		System.out.println(hsl24To16(rgbToHSL(0x905030)));
-	}
-
 	/**
 	 * Converts an INT24_RGB value to INT24_HSL.
 	 *

@@ -1,7 +1,5 @@
 package dane;
 
-import java.util.*;
-
 /*
  * Copyright (C) 2015 Dane.
  *
@@ -26,48 +24,130 @@ import java.util.*;
  */
 public class Model {
 
+	/**
+	 * Used to check if the mouse is within a triangle for input on a model.
+	 */
 	public static boolean allowInput;
+
+	/**
+	 * The stored mouse position for checking input.
+	 */
 	public static int mouseX, mouseY;
 
+	/**
+	 * The closest to the camera a point can be before it becomes a corrected triangle.
+	 */
 	public static final int NEAR_Z = 50;
+
+	/**
+	 * The farthest a model can be from the camera before it stops being drawn.
+	 */
 	public static final int FAR_Z = 0x7FFFF;
 
-	public static final int MAX_COMPONENT_COUNT = 1024 * 32;
+	/**
+	 * The max triangle constant.
+	 */
+	public static final int MAX_TRIANGLE_COUNT = 1024 * 16;
 
-	public static boolean[] testTriangleX = new boolean[MAX_COMPONENT_COUNT];
-	public static boolean[] projectTriangle = new boolean[MAX_COMPONENT_COUNT];
+	/**
+	 * The max vertex constant.
+	 */
+	public static final int MAX_VERTEX_COUNT = 1024 * 16;
 
-	public static int[] vertexScreenX = new int[MAX_COMPONENT_COUNT];
-	public static int[] vertexScreenY = new int[MAX_COMPONENT_COUNT];
+	/**
+	 * Determines whether the scanlines a triangle produces should be clamped on the screen.
+	 */
+	public static boolean[] testTriangleX = new boolean[MAX_TRIANGLE_COUNT];
 
-	public static int[] projectSceneX = new int[MAX_COMPONENT_COUNT];
-	public static int[] projectSceneY = new int[MAX_COMPONENT_COUNT];
-	public static int[] vertexDepth = new int[MAX_COMPONENT_COUNT];
+	/**
+	 * Determines whether the triangles should be z corrected.
+	 */
+	public static boolean[] correctTriangleZ = new boolean[MAX_TRIANGLE_COUNT];
 
-	public static int[] tmpX = new int[4];
-	public static int[] tmpY = new int[4];
-	public static int[] tmpZ = new int[4];
-	public static int[] tmpColor = new int[4];
+	/**
+	 * The horizontal position of a vertex on the screen.
+	 */
+	public static int[] vertexScreenX = new int[MAX_VERTEX_COUNT];
 
+	/**
+	 * The vertical position of a vertex on the screen.
+	 */
+	public static int[] vertexScreenY = new int[MAX_VERTEX_COUNT];
+
+	/**
+	 * The distance of a vertex from the screen.
+	 */
+	public static int[] vertexDepth = new int[MAX_VERTEX_COUNT];
+
+	/**
+	 * The transformed x component of a vertex.
+	 */
+	public static int[] vertexProjectX = new int[MAX_VERTEX_COUNT];
+
+	/**
+	 * The transformed y component of a vertex.
+	 */
+	public static int[] vertexProjectY = new int[MAX_VERTEX_COUNT];
+
+	/**
+	 * The corrected vertex components.
+	 */
+	public static int[] tmpX = new int[4], tmpY = new int[4], tmpZ = new int[4], tmpColor = new int[4];
+
+	/**
+	 * A 16.16 fixed point sine lookup table.
+	 */
 	public static int[] sin = Graphics3D.sin;
+
+	/**
+	 * A 16.16 fixed point cosine lookup table.
+	 */
 	public static int[] cos = Graphics3D.cos;
+
+	/**
+	 * A hsl to rgb lookup table.
+	 */
 	public static int[] palette = Graphics3D.palette;
+
+	/**
+	 * A 16.16 fixed point fraction lookup table.
+	 */
 	public static int[] oneOverFixed1616 = Graphics3D.oneOverFixed1616;
 
-	public static final boolean withinTriangle(int x, int y, int y0, int y1, int y2, int x0, int x1, int x2) {
-		if (y < y0 && y < y1 && y < y2) {
+	/**
+	 *
+	 * @param x the x.
+	 * @param y the y.
+	 * @param yA the y of a.
+	 * @param yB the y of b.
+	 * @param yC the y of c.
+	 * @param xA the x of a.
+	 * @param xB the x of b.
+	 * @param xC the x of c.
+	 * @return whether x and y is within the boundaries of A, B, C.
+	 */
+	public static final boolean withinTriangle(int x, int y, int yA, int yB, int yC, int xA, int xB, int xC) {
+		if (y < yA && y < yB && y < yC) {
 			return false;
 		}
-		if (y > y0 && y > y1 && y > y2) {
+		if (y > yA && y > yB && y > yC) {
 			return false;
 		}
-		if (x < x0 && x < x1 && x < x2) {
+		if (x < xA && x < xB && x < xC) {
 			return false;
 		}
-		return !(x > x0 && x > x1 && x > x2);
+		return !(x > xA && x > xB && x > xC);
 	}
 
-	public static final int adjustHSLLightness(int hsl, int lightness, int type) {
+	/**
+	 * Returns the adjusted lightness of the provided hsl value.
+	 *
+	 * @param hsl the hsl.
+	 * @param lightness the lightness.
+	 * @param type the triangle type.
+	 * @return if the type == textured then only the lightness value, else the adjusted hsl value.
+	 */
+	public static final int adjustTriangleHSLLightness(int hsl, int lightness, int type) {
 		if ((type & 0x2) == 2) {
 			if (lightness < 0) {
 				lightness = 0;
@@ -89,49 +169,122 @@ public class Model {
 		return (hsl & 0xff80) + lightness;
 	}
 
+	/**
+	 * The vertex count.
+	 */
 	public int vertexCount;
-	public int[] vertexX = new int[0];
-	public int[] vertexY = new int[0];
-	public int[] vertexZ = new int[0];
-	public Map<Long, Integer> vertexLookup = new HashMap<>();
 
+	/**
+	 * The vertices x components.
+	 */
+	public int[] vertexX = new int[0];
+
+	/**
+	 * The vertices y components.
+	 */
+	public int[] vertexY = new int[0];
+
+	/**
+	 * The vertices z components.
+	 */
+	public int[] vertexZ = new int[0];
+
+	/**
+	 * The triangle count.
+	 */
 	public int triangleCount;
+
+	/**
+	 * The triangles first vertex.
+	 */
 	public int[] triangleVertexA = new int[0];
+
+	/**
+	 * The triangles second vertex.
+	 */
 	public int[] triangleVertexB = new int[0];
+
+	/**
+	 * The triangles third vertex.
+	 */
 	public int[] triangleVertexC = new int[0];
 
+	/**
+	 * The triangles color.
+	 */
 	public int[] triangleColor = new int[0];
+
+	/**
+	 * A color component.
+	 */
 	public int[] colorA = new int[0];
+
+	/**
+	 * A color component.
+	 */
 	public int[] colorB = new int[0];
+
+	/**
+	 * A color component.
+	 */
 	public int[] colorC = new int[0];
 
+	/**
+	 * The triangles type.
+	 */
 	public int[] triangleType;
+
+	/**
+	 * The triangles priorities. (Currently unused due to zbuffer)
+	 */
 	public int[] trianglePriorities;
+
+	/**
+	 * The triangles alpha component.
+	 */
 	public int[] triangleAlpha;
 
+	/**
+	 * The width boundaries.
+	 */
 	public int minBoundX, maxBoundX;
+
+	/**
+	 * The length boundaries.
+	 */
 	public int minBoundZ, maxBoundZ;
+
+	/**
+	 * The height boundaries.
+	 */
 	public int minBoundY, maxBoundY;
+
 	public int boundLengthXZ;
 
+	/**
+	 * The depth boundaries. (Currently unused due to zbuffer)
+	 */
 	public int maxDepth, minDepth;
 
-	public Normal[] normals, unmodifiedNormals;
+	/**
+	 * The normals for each vertex.
+	 */
+	public Normal[] normals;
 
-	public final int addVertex(int x, int y, int z) {
-		vertexX[vertexCount] = x;
-		vertexY[vertexCount] = y;
-		vertexZ[vertexCount] = z;
-		return vertexCount++;
-	}
+	/**
+	 * The copies of the original normals for each vertex.
+	 */
+	public Normal[] unmodifiedNormals;
 
-	public final int addTriangle(int a, int b, int c) {
-		triangleVertexA[triangleCount] = a;
-		triangleVertexB[triangleCount] = b;
-		triangleVertexC[triangleCount] = c;
-		return triangleCount++;
-	}
-
+	/**
+	 * Sets the vertex xyz values.
+	 *
+	 * @param index the vertex index.
+	 * @param x the x.
+	 * @param y the y.
+	 * @param z the z.
+	 * @return the vertex index.
+	 */
 	public final int setVertex(int index, int x, int y, int z) {
 		vertexX[index] = x;
 		vertexY[index] = y;
@@ -139,6 +292,15 @@ public class Model {
 		return index;
 	}
 
+	/**
+	 * Sets the triangle abc vertex pointers.
+	 *
+	 * @param index the triangle index.
+	 * @param a the first vertex.
+	 * @param b the second vertex.
+	 * @param c the third vertex.
+	 * @return the triangle index.
+	 */
 	public final int setTriangle(int index, int a, int b, int c) {
 		triangleVertexA[index] = a;
 		triangleVertexB[index] = b;
@@ -146,6 +308,9 @@ public class Model {
 		return index;
 	}
 
+	/**
+	 * Inverts the triangles.
+	 */
 	public void invert() {
 		for (int v = 0; v < vertexCount; v++) {
 			vertexZ[v] = -vertexZ[v];
@@ -158,6 +323,9 @@ public class Model {
 		}
 	}
 
+	/**
+	 * Calculates the normals.
+	 */
 	public final void calculateNormals() {
 		if (normals == null) {
 			normals = new Normal[vertexCount];
@@ -224,7 +392,17 @@ public class Model {
 		}
 	}
 
-	public final void applyLighting(int baseLightness, int intensity, int x, int y, int z, boolean calculateLighting) {
+	/**
+	 * Calculates the normals and then applies lighting values to each vertex.
+	 *
+	 * @param minIntensity the minimum lightness.
+	 * @param intensity the light lightness.
+	 * @param x the light source x.
+	 * @param y the light source y.
+	 * @param z the light source z.
+	 * @param apply whether to calculate lighting and y boundaries or copy normals and calculate boundaries.
+	 */
+	public final void applyLighting(int minIntensity, int intensity, int x, int y, int z, boolean apply) {
 		int lightMagnitude = (int) Math.sqrt((double) (x * x + y * y + z * z));
 		int lightIntensity = intensity * lightMagnitude >> 8;
 
@@ -296,13 +474,13 @@ public class Model {
 				n.z += lZ;
 				n.magnitude++;
 			} else {
-				int lightness = baseLightness + (x * lX + y * lY + z * lZ) / (lightIntensity + lightIntensity / 2);
-				colorA[t] = adjustHSLLightness(triangleColor[t], lightness, triangleType[t]);
+				int lightness = minIntensity + (x * lX + y * lY + z * lZ) / (lightIntensity + lightIntensity / 2);
+				colorA[t] = adjustTriangleHSLLightness(triangleColor[t], lightness, triangleType[t]);
 			}
 		}
 
-		if (calculateLighting) {
-			calculateLighting(baseLightness, lightIntensity, x, y, z);
+		if (apply) {
+			calculateLighting(minIntensity, lightIntensity, x, y, z);
 		} else {
 			unmodifiedNormals = new Normal[vertexCount];
 
@@ -316,13 +494,22 @@ public class Model {
 			}
 		}
 
-		if (calculateLighting) {
+		if (apply) {
 			calculateYBoundaries();
 		} else {
 			calculateBoundaries();
 		}
 	}
 
+	/**
+	 * Calculates the colors of each component depending on their normals.
+	 *
+	 * @param minIntensity the minimum lightness.
+	 * @param intensity the intensity.
+	 * @param x the light source x.
+	 * @param y the light source y.
+	 * @param z the light source z.
+	 */
 	public final void calculateLighting(int minIntensity, int intensity, int x, int y, int z) {
 		for (int t = 0; t < triangleCount; t++) {
 			int a = triangleVertexA[t];
@@ -335,15 +522,15 @@ public class Model {
 				Normal n = normals[a];
 				int lightness = minIntensity + ((x * n.x + y * n.y + z * n.z) / (intensity * n.magnitude));
 
-				colorA[t] = adjustHSLLightness(color, lightness, 0);
+				colorA[t] = adjustTriangleHSLLightness(color, lightness, 0);
 
 				n = normals[b];
 				lightness = minIntensity + ((x * n.x + y * n.y + z * n.z) / (intensity * n.magnitude));
-				colorB[t] = adjustHSLLightness(color, lightness, 0);
+				colorB[t] = adjustTriangleHSLLightness(color, lightness, 0);
 
 				n = normals[c];
 				lightness = minIntensity + ((x * n.x + y * n.y + z * n.z) / (intensity * n.magnitude));
-				colorC[t] = adjustHSLLightness(color, lightness, 0);
+				colorC[t] = adjustTriangleHSLLightness(color, lightness, 0);
 			} else if ((triangleType[t] & 0x1) == 0) {
 				int color = triangleColor[t];
 				int info = triangleType[t];
@@ -351,15 +538,15 @@ public class Model {
 
 				Normal n = normals[a];
 				lightness = minIntensity + ((x * n.x + y * n.y + z * n.z) / (intensity * n.magnitude));
-				colorA[t] = adjustHSLLightness(color, lightness, info);
+				colorA[t] = adjustTriangleHSLLightness(color, lightness, info);
 
 				n = normals[b];
 				lightness = minIntensity + ((x * n.x + y * n.y + z * n.z) / (intensity * n.magnitude));
-				colorB[t] = adjustHSLLightness(color, lightness, info);
+				colorB[t] = adjustTriangleHSLLightness(color, lightness, info);
 
 				n = normals[c];
 				lightness = minIntensity + ((x * n.x + y * n.y + z * n.z) / (intensity * n.magnitude));
-				colorC[t] = adjustHSLLightness(color, lightness, info);
+				colorC[t] = adjustTriangleHSLLightness(color, lightness, info);
 			}
 		}
 	}
@@ -470,9 +657,21 @@ public class Model {
 		}
 	}
 
-	public void draw(int pitch, int yaw, int roll, int cameraX, int cameraY, int cameraZ, int cameraPitch) {
-		final int centerX = Graphics3D.center3dX;
-		final int centerY = Graphics3D.center3dY;
+	/**
+	 * Draws this model that does not take input and ignores NearZ/FarZ constants. (<b>Warning:</b> not for drawing
+	 * models on a scene.)
+	 *
+	 * @param pitch the pitch.
+	 * @param yaw the yaw.
+	 * @param roll the roll.
+	 * @param sceneX the camera x.
+	 * @param sceneY the camera y.
+	 * @param sceneZ the camera z.
+	 * @param cameraPitch the camera pitch.
+	 */
+	public void draw(int pitch, int yaw, int roll, int sceneX, int sceneY, int sceneZ, int cameraPitch) {
+		final int centerX = Graphics3D.centerX;
+		final int centerY = Graphics3D.centerY;
 
 		int pitchSine = sin[pitch];
 		int pitchCosine = cos[pitch];
@@ -485,8 +684,6 @@ public class Model {
 
 		int cameraPitchSine = sin[cameraPitch];
 		int cameraPitchCosine = cos[cameraPitch];
-
-		int depth = cameraY * cameraPitchSine + cameraZ * cameraPitchCosine >> 16;
 
 		for (int v = 0; v < vertexCount; v++) {
 			int x = vertexX[v];
@@ -511,9 +708,9 @@ public class Model {
 				x = y0;
 			}
 
-			x += cameraX;
-			y += cameraY;
-			z += cameraZ;
+			x += sceneX;
+			y += sceneY;
+			z += sceneZ;
 
 			int x0 = y * cameraPitchCosine - z * cameraPitchSine >> 16;
 			z = y * cameraPitchSine + z * cameraPitchCosine >> 16;
@@ -523,12 +720,34 @@ public class Model {
 			vertexScreenX[v] = centerX + (x << 9) / z;
 			vertexScreenY[v] = centerY + (y << 9) / z;
 		}
+
 		draw(0, false, false);
 	}
 
+	/**
+	 * The screen boundaries of the last drawn model.
+	 */
 	public static int sx1, sx2, sy1, sy2;
+
+	/**
+	 * Whether the last draw call was successful.
+	 */
 	public static boolean drawingModel = false;
 
+	/**
+	 * Draws the model.
+	 *
+	 * @param pitch the model pitch.
+	 * @param yaw the model yaw.
+	 * @param cameraPitchSine the camera pitch sine.
+	 * @param cameraPitchCosine the camera pitch cosine.
+	 * @param cameraYawSine the camera yaw sine.
+	 * @param cameraYawCosine the camera yaw cosine.
+	 * @param sceneX the scene x.
+	 * @param sceneY the scene y.
+	 * @param sceneZ the scene z.
+	 * @param bitset the model bitset. (Used to identify model in the case of input)
+	 */
 	public void draw(int pitch, int yaw, int cameraPitchSine, int cameraPitchCosine, int cameraYawSine, int cameraYawCosine, int sceneX, int sceneY, int sceneZ, int bitset) {
 		int a = sceneZ * cameraYawCosine - sceneX * cameraYawSine >> 16;
 		int farZ = sceneY * cameraPitchSine + a * cameraPitchCosine >> 16;
@@ -613,16 +832,16 @@ public class Model {
 				minY /= maxZ;
 			}
 
-			int x = mouseX - Graphics3D.center3dX;
-			int y = mouseY - Graphics3D.center3dY;
+			int x = mouseX - Graphics3D.centerX;
+			int y = mouseY - Graphics3D.centerY;
 
 			if (x > minX && x < maxX && y > minY && y < maxY) {
 				hasInput = true;
 			}
 		}
 
-		int centerX = Graphics3D.center3dX;
-		int centerY = Graphics3D.center3dY;
+		int centerX = Graphics3D.centerX;
+		int centerY = Graphics3D.centerY;
 
 		int pitchSine = 0;
 		int pitchCosine = 0;
@@ -680,8 +899,8 @@ public class Model {
 			}
 
 			if (project) {
-				projectSceneX[v] = x;
-				projectSceneY[v] = y;
+				vertexProjectX[v] = x;
+				vertexProjectY[v] = y;
 			}
 		}
 
@@ -693,6 +912,13 @@ public class Model {
 
 	}
 
+	/**
+	 * Draws the model after checking for z correction, input, and sufficient triangle area.
+	 *
+	 * @param bitset the model bitset. (For input)
+	 * @param projected whether the model has corrected triangles.
+	 * @param hasInput whether the model can take input.
+	 */
 	private void draw(int bitset, boolean projected, boolean hasInput) {
 		for (int t = 0; t < triangleCount; t++) {
 			if (triangleType == null || triangleType[t] != -1) {
@@ -704,7 +930,7 @@ public class Model {
 				int xC = vertexScreenX[c];
 
 				if (projected && (xA == -5000 || xB == -5000 || xC == -5000)) {
-					projectTriangle[t] = true;
+					correctTriangleZ[t] = true;
 					drawTriangle(t);
 				} else {
 					if (hasInput && withinTriangle(mouseX, mouseY, vertexScreenY[a], vertexScreenY[b], vertexScreenY[c], xA, xB, xC)) {
@@ -717,7 +943,7 @@ public class Model {
 
 					// change to > 0 to only allow front faces, < 0 for back faces, and != 0 for both faces.
 					if (area > 0) {
-						projectTriangle[t] = false;
+						correctTriangleZ[t] = false;
 						testTriangleX[t] = xA < 0 || xB < 0 || xC < 0 || xA > Graphics2D.rightX || xB > Graphics2D.rightX || xC > Graphics2D.rightX;
 						drawTriangle(t);
 					}
@@ -726,8 +952,13 @@ public class Model {
 		}
 	}
 
+	/**
+	 * Draws the triangle.
+	 *
+	 * @param index the triangle index.
+	 */
 	private void drawTriangle(int index) {
-		if (projectTriangle[index]) {
+		if (correctTriangleZ[index]) {
 			drawCorrectedTriangle(index);
 		} else {
 			int a = triangleVertexA[index];
@@ -758,9 +989,14 @@ public class Model {
 		}
 	}
 
+	/**
+	 * Draws the corrected triangle.
+	 *
+	 * @param index the triangle index.
+	 */
 	private void drawCorrectedTriangle(int index) {
-		int cx = Graphics3D.center3dX;
-		int cy = Graphics3D.center3dY;
+		int cx = Graphics3D.centerX;
+		int cy = Graphics3D.centerY;
 		int n = 0;
 
 		int vA = triangleVertexA[index];
@@ -777,22 +1013,22 @@ public class Model {
 			tmpZ[n] = zA;
 			tmpColor[n++] = colorA[index];
 		} else {
-			int x = projectSceneX[vA];
-			int y = projectSceneY[vA];
+			int x = vertexProjectX[vA];
+			int y = vertexProjectY[vA];
 			int color = colorA[index];
 
 			if (zC >= NEAR_Z) {
 				int interpolant = (NEAR_Z - zA) * oneOverFixed1616[zC - zA];
-				tmpX[n] = cx + ((x + (((projectSceneX[vC] - x) * interpolant) >> 16)) << 9) / NEAR_Z;
-				tmpY[n] = cy + ((y + (((projectSceneY[vC] - y) * interpolant) >> 16)) << 9) / NEAR_Z;
+				tmpX[n] = cx + ((x + (((vertexProjectX[vC] - x) * interpolant) >> 16)) << 9) / NEAR_Z;
+				tmpY[n] = cy + ((y + (((vertexProjectY[vC] - y) * interpolant) >> 16)) << 9) / NEAR_Z;
 				tmpZ[n] = zA;
 				tmpColor[n++] = color + ((colorC[index] - color) * interpolant >> 16);
 			}
 
 			if (zB >= NEAR_Z) {
 				int interpolant = (NEAR_Z - zA) * oneOverFixed1616[zB - zA];
-				tmpX[n] = (cx + (x + ((projectSceneX[vB] - x) * interpolant >> 16) << 9) / NEAR_Z);
-				tmpY[n] = (cy + (y + ((projectSceneY[vB] - y) * interpolant >> 16) << 9) / NEAR_Z);
+				tmpX[n] = (cx + (x + ((vertexProjectX[vB] - x) * interpolant >> 16) << 9) / NEAR_Z);
+				tmpY[n] = (cy + (y + ((vertexProjectY[vB] - y) * interpolant >> 16) << 9) / NEAR_Z);
 				tmpZ[n] = zA;
 				tmpColor[n++] = color + ((colorB[index] - color) * interpolant >> 16);
 			}
@@ -804,22 +1040,22 @@ public class Model {
 			tmpZ[n] = zB;
 			tmpColor[n++] = colorB[index];
 		} else {
-			int x = projectSceneX[vB];
-			int y = projectSceneY[vB];
+			int x = vertexProjectX[vB];
+			int y = vertexProjectY[vB];
 			int color = colorB[index];
 
 			if (zA >= NEAR_Z) {
 				int interpolant = (NEAR_Z - zB) * oneOverFixed1616[zA - zB];
-				tmpX[n] = (cx + (x + ((projectSceneX[vA] - x) * interpolant >> 16) << 9) / NEAR_Z);
-				tmpY[n] = (cy + (y + ((projectSceneY[vA] - y) * interpolant >> 16) << 9) / NEAR_Z);
+				tmpX[n] = (cx + (x + ((vertexProjectX[vA] - x) * interpolant >> 16) << 9) / NEAR_Z);
+				tmpY[n] = (cy + (y + ((vertexProjectY[vA] - y) * interpolant >> 16) << 9) / NEAR_Z);
 				tmpZ[n] = zB;
 				tmpColor[n++] = color + ((colorA[index] - color) * interpolant >> 16);
 			}
 
 			if (zC >= NEAR_Z) {
 				int interpolant = (NEAR_Z - zB) * oneOverFixed1616[zC - zB];
-				tmpX[n] = (cx + (x + ((projectSceneX[vC] - x) * interpolant >> 16) << 9) / NEAR_Z);
-				tmpY[n] = (cy + (y + ((projectSceneY[vC] - y) * interpolant >> 16) << 9) / NEAR_Z);
+				tmpX[n] = (cx + (x + ((vertexProjectX[vC] - x) * interpolant >> 16) << 9) / NEAR_Z);
+				tmpY[n] = (cy + (y + ((vertexProjectY[vC] - y) * interpolant >> 16) << 9) / NEAR_Z);
 				tmpZ[n] = zB;
 				tmpColor[n++] = color + ((colorC[index] - color) * interpolant >> 16);
 			}
@@ -831,22 +1067,22 @@ public class Model {
 			tmpZ[n] = zC;
 			tmpColor[n++] = colorC[index];
 		} else {
-			int x = projectSceneX[vC];
-			int y = projectSceneY[vC];
+			int x = vertexProjectX[vC];
+			int y = vertexProjectY[vC];
 			int color = colorC[index];
 
 			if (zB >= NEAR_Z) {
 				int interpolant = (NEAR_Z - zC) * (oneOverFixed1616[zB - zC]);
-				tmpX[n] = (cx + (x + (((projectSceneX[vB] - x) * interpolant) >> 16) << 9) / NEAR_Z);
-				tmpY[n] = (cy + (y + (((projectSceneY[vB] - y) * interpolant) >> 16) << 9) / NEAR_Z);
+				tmpX[n] = (cx + (x + (((vertexProjectX[vB] - x) * interpolant) >> 16) << 9) / NEAR_Z);
+				tmpY[n] = (cy + (y + (((vertexProjectY[vB] - y) * interpolant) >> 16) << 9) / NEAR_Z);
 				tmpZ[n] = zC;
 				tmpColor[n++] = color + ((colorB[index] - color) * interpolant >> 16);
 			}
 
 			if (zA >= NEAR_Z) {
 				int interpolant = (NEAR_Z - zC) * oneOverFixed1616[zA - zC];
-				tmpX[n] = (cx + (x + (((projectSceneX[vA] - x) * interpolant) >> 16) << 9) / NEAR_Z);
-				tmpY[n] = (cy + (y + (((projectSceneY[vA] - y) * interpolant) >> 16) << 9) / NEAR_Z);
+				tmpX[n] = (cx + (x + (((vertexProjectX[vA] - x) * interpolant) >> 16) << 9) / NEAR_Z);
+				tmpY[n] = (cy + (y + (((vertexProjectY[vA] - y) * interpolant) >> 16) << 9) / NEAR_Z);
 				tmpZ[n] = zC;
 				tmpColor[n++] = color + ((colorA[index] - color) * interpolant >> 16);
 			}

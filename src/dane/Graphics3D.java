@@ -24,7 +24,7 @@ import java.util.*;
  *
  * @author Dane
  */
-public class Graphics3D extends Graphics2D {
+public class Graphics3D {
 
 	/**
 	 * Determines whether to use choppy looking shading
@@ -34,7 +34,7 @@ public class Graphics3D extends Graphics2D {
 	/**
 	 * The center of our 3d target
 	 */
-	public static int center3dX, center3dY;
+	public static int centerX, centerY;
 
 	/**
 	 * A lookup table for 17.15 fixed point fractions.
@@ -113,8 +113,8 @@ public class Graphics3D extends Graphics2D {
 		for (int y = 0; y < Graphics2D.targetHeight; y++) {
 			offsets[y] = Graphics2D.targetWidth * y;
 		}
-		center3dX = Graphics2D.targetWidth / 2;
-		center3dY = Graphics2D.targetHeight / 2;
+		centerX = Graphics2D.targetWidth / 2;
+		centerY = Graphics2D.targetHeight / 2;
 		return offsets;
 	}
 
@@ -130,8 +130,8 @@ public class Graphics3D extends Graphics2D {
 		for (int y = 0; y < h; y++) {
 			offsets[y] = w * y;
 		}
-		center3dX = w / 2;
-		center3dY = h / 2;
+		centerX = w / 2;
+		centerY = h / 2;
 		return offsets;
 	}
 
@@ -2424,6 +2424,10 @@ public class Graphics3D extends Graphics2D {
 				} while (--length > 0);
 			}
 		}
+	}
+
+	private Graphics3D() {
+
 	}
 
 }

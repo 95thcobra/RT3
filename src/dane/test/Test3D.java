@@ -197,7 +197,7 @@ public class Test3D extends TestApplet {
 	}
 
 	public void draw() {
-		Graphics3D.clear(0xBFEEFF);
+		Graphics2D.clear(0xBFEEFF);
 		Graphics3D.clearZBuffer();
 
 		int cameraPitchSine = Model.sin[cameraPitch];
@@ -232,8 +232,8 @@ public class Test3D extends TestApplet {
 			y = w;
 
 			if (z != 0) {
-				int sx = Graphics3D.halfWidth + (x << 9) / z;
-				int sy = Graphics3D.halfHeight + (y << 9) / z;
+				int sx = Graphics3D.centerX + (x << 9) / z;
+				int sy = Graphics3D.centerY + (y << 9) / z;
 
 				if (sx >= 0 && sx <= width && sy >= 0 && sy <= height) {
 					Graphics2D.fillRect(sx - 1, sy - 1, 3, 3, 0xFF0000);

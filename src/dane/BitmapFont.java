@@ -29,27 +29,84 @@ import java.io.*;
  */
 public class BitmapFont {
 
+	/**
+	 * The horizontal flag center constant.
+	 */
 	public static final int CENTER_X = (1 << 0);
+
+	/**
+	 * The vertical flag center constant.
+	 */
 	public static final int CENTER_Y = (1 << 1);
+
+	/**
+	 * The shadow flag constant.
+	 */
 	public static final int SHADOW = (1 << 2);
 
+	/**
+	 * The minimum ASCII char index.
+	 */
 	public static final int MIN_CHAR = 0;
+
+	/**
+	 * The maximum ASCII char index.
+	 */
 	public static final int MAX_CHAR = 127;
+
+	/**
+	 * The ASCII char count.
+	 */
 	public static final int CHAR_COUNT = MAX_CHAR - MIN_CHAR;
 
+	/**
+	 * The character masks.
+	 */
 	public byte[][] charMask;
+
+	/**
+	 * The character widths.
+	 */
 	public int[] charWidth;
+
+	/**
+	 * The font height.
+	 */
 	public int height;
 
+	/**
+	 * Creates a new font from the provided input stream and derives our BitmapFont from it.
+	 *
+	 * @param in the input stream.
+	 * @param size the font size.
+	 * @throws FontFormatException if the <code>fontStream</code> data does not contain the required font tables for the
+	 * specified format.
+	 * @throws IOException if the <code>fontStream</code> cannot be completely read.
+	 */
 	public BitmapFont(InputStream in, int size) throws IOException, FontFormatException {
 		this(Font.createFont(Font.TRUETYPE_FONT, in).deriveFont(Font.PLAIN, size));
 	}
 
+	/**
+	 * Creates a new font from the provided input stream and derives our BitmapFont from it.
+	 *
+	 * @param in the input stream.
+	 * @param style the font style.
+	 * @param size the font size.
+	 * @throws FontFormatException if the <code>fontStream</code> data does not contain the required font tables for the
+	 * specified format.
+	 * @throws IOException if the <code>fontStream</code> cannot be completely read.
+	 */
 	public BitmapFont(InputStream in, int style, int size) throws IOException, FontFormatException {
 		this(Font.createFont(Font.TRUETYPE_FONT, in).deriveFont(style, size));
 	}
 
-	public BitmapFont(Font f) throws IOException {
+	/**
+	 * Creates a new font from the provided input stream and derives our BitmapFont from it.
+	 *
+	 * @param f the font to derive from.
+	 */
+	public BitmapFont(Font f) {
 		int size = (int) f.getSize2D() * 2;
 
 		BufferedImage i = new BufferedImage(size, size, BufferedImage.TYPE_INT_RGB);
@@ -222,6 +279,14 @@ public class BitmapFont {
 		}
 	}
 
+	/**
+	 * Draws a character.
+	 *
+	 * @param c the char.
+	 * @param x the x.
+	 * @param y the y.
+	 * @param rgb the color.
+	 */
 	public final void drawCharacter(final char c, final int x, final int y, final int rgb) {
 		Graphics2D.drawPixelMask(x, y, charWidth[c], height, charMask[c], rgb);
 	}

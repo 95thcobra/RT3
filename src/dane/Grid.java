@@ -24,10 +24,28 @@ package dane;
  */
 public class Grid extends Model {
 
+	/**
+	 * The column count.
+	 */
 	public int columns;
+
+	/**
+	 * The row count.
+	 */
 	public int rows;
+
+	/**
+	 * The size.
+	 */
 	public int size;
 
+	/**
+	 * Generates a 3D mesh of a grid.
+	 *
+	 * @param size the size of the grid.
+	 * @param columns the x subdivisions.
+	 * @param rows the z subdivisions.
+	 */
 	public Grid(int size, int columns, int rows) {
 		int tileWidth = size / columns;
 		int tileHeight = size / rows;

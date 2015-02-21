@@ -1,109 +1,178 @@
 package dane;
 
-import dane.Graphics2D;
-import java.awt.*;
 import java.awt.image.*;
 import java.io.*;
 import java.util.logging.*;
 import javax.imageio.*;
 
-public class Sprite extends Graphics2D {
+/*
+ * Copyright (C) 2015 Dane.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+ * MA 02110-1301  USA
+ */
+/**
+ *
+ * @author Dane
+ */
+public class Sprite {
 
 	private static final Logger logger = Logger.getLogger(Sprite.class.toString());
 
+	/**
+	 * Loads an image using ImageIO and casts it to a Sprite.
+	 *
+	 * @param f the file.
+	 * @return the sprite.
+	 * @throws IOException if an error occurs during reading.
+	 */
 	public static final Sprite load(File f) throws IOException {
 		BufferedImage image = ImageIO.read(f);
 		Sprite b = new Sprite(image.getWidth(), image.getHeight());
-		image.getRGB(0, 0, b.width, b.height, b.pixels, 0, b.width);
-		for (int i = 0; i < b.pixels.length; i++) {
-			b.pixels[i] &= ~(0xFF000000);
+		image.getRGB(0, 0, b.width, b.height, b.data, 0, b.width);
+		for (int i = 0; i < b.data.length; i++) {
+			b.data[i] &= ~(0xFF000000);
 		}
 		return b;
 	}
 
-	public int[] pixels;
+	/**
+	 * The information for each pixel.
+	 */
+	public int[] data;
+
+	/**
+	 * The width.
+	 */
 	public int width;
+
+	/**
+	 * The height.
+	 */
 	public int height;
-	public int clipX;
-	public int clipY;
-	public int clipWidth;
-	public int clipHeight;
 
+	/**
+	 * Constructs a blank sprite.
+	 *
+	 * @param width the width.
+	 * @param height the height.
+	 */
 	public Sprite(int width, int height) {
-		this.pixels = new int[width * height];
-		this.width = this.clipWidth = width;
-		this.height = this.clipHeight = height;
-		this.clipX = this.clipY = 0;
+		this.data = new int[width * height];
+		this.width = width;
+		this.height = height;
 	}
 
-	public Sprite(byte[] src, Component c) {
-		try {
-			Image i = Toolkit.getDefaultToolkit().createImage(src);
-			MediaTracker t = new MediaTracker(c);
-			t.addImage(i, 0);
-			t.waitForAll();
-			this.width = i.getWidth(c);
-			this.height = i.getHeight(c);
-			this.clipWidth = this.width;
-			this.clipHeight = this.height;
-			this.clipX = 0;
-			this.clipY = 0;
-			this.pixels = new int[this.width * this.height];
-			PixelGrabber g = new PixelGrabber(i, 0, 0, this.width, this.height, this.pixels, 0, this.width);
-			g.grabPixels();
-		} catch (Exception e) {
-			System.out.println("Error converting jpg");
-		}
-	}
-
+	/**
+	 * Binds this sprite as the target to the {@link Graphics2D} class.
+	 *
+	 * @see Graphics2D
+	 */
 	public void bind() {
-		Graphics2D.setTarget(this.pixels, this.width, this.height);
+		Graphics2D.setTarget(this.data, this.width, this.height);
 	}
 
+	/**
+	 * Replaces the color A with the color B.
+	 *
+	 * @param a the rgb A.
+	 * @param b the rgb B.
+	 */
 	public void replaceRGB(int a, int b) {
-		for (int i = 0; i < this.pixels.length; i++) {
-			if (this.pixels[i] == a) {
-				this.pixels[i] = b;
+		for (int i = 0; i < this.data.length; i++) {
+			if (this.data[i] == a) {
+				this.data[i] = b;
 			}
 		}
 	}
 
-	// technically same as draw(int x, int y)
+	/**
+	 * Draws the sprite opaquely.
+	 *
+	 * @param x the draw x.
+	 * @param y the draw y.
+	 */
 	public void drawOpaque(int x, int y) {
-		Graphics2D.drawPixels(x, y, this.width, this.height, this.pixels);
+		Graphics2D.drawPixels(x, y, this.width, this.height, this.data);
 	}
 
+	/**
+	 * Draws the sprite. (ignores black pixels)
+	 *
+	 * @param x the draw x.
+	 * @param y the draw y.
+	 */
 	public void draw(int x, int y) {
-		Graphics2D.drawPixels(x, y, this.width, this.height, this.pixels);
+		Graphics2D.drawPixels(x, y, this.width, this.height, this.data);
 	}
 
+	/**
+	 * Draws the sprite translucently. (ignores black pixels)
+	 *
+	 * @param x the draw x.
+	 * @param y the draw y.
+	 * @param alpha the alpha.
+	 */
 	public void draw(int x, int y, int alpha) {
-		Graphics2D.drawPixels(x, y, this.width, this.height, this.pixels, alpha);
+		Graphics2D.drawPixels(x, y, this.width, this.height, this.data, alpha);
 	}
 
+	/**
+	 * Draws the sprite.
+	 *
+	 * @param x the draw x.
+	 * @param y the draw y.
+	 * @param w the draw width.
+	 * @param h the draw height.
+	 */
 	public void draw(int x, int y, int w, int h) {
 		Graphics2D.drawSprite(this, x, y, w, h);
 	}
 
-	public void draw(int x, int y, int w, int h, int pivotX, int pivotY, int theta, int[] lineStart, int[] lineWidth) {
+	/**
+	 * Draws the sprite rotated around a point.
+	 *
+	 * @param x the draw x.
+	 * @param y the draw y.
+	 * @param w the sprite width.
+	 * @param h the sprite height.
+	 * @param pivotX the pivot x.
+	 * @param pivotY the pivot y.
+	 * @param angle the angle.
+	 * @param horizontalOffsets the horizontal offset array.
+	 * @param rowWidth the pixel row width array.
+	 */
+	public void draw(int x, int y, int w, int h, int pivotX, int pivotY, int angle, int[] horizontalOffsets, int[] rowWidth) {
 		try {
 			int cx = -w / 2;
 			int cy = -h / 2;
 
-			int sin = (int) (Math.sin((double) theta / 326.11) * 65536.0);
-			int cos = (int) (Math.cos((double) theta / 326.11) * 65536.0);
+			int sin = (int) (Math.sin((double) angle / 326.11) * 65536.0);
+			int cos = (int) (Math.cos((double) angle / 326.11) * 65536.0);
 
 			int offX = (pivotX << 16) + (cy * sin + cx * cos);
 			int offY = (pivotY << 16) + (cy * cos - cx * sin);
 			int baseOffset = x + (y * Graphics2D.targetWidth);
 
 			for (y = 0; y < h; y++) {
-				int start = lineStart[y];
+				int start = horizontalOffsets[y];
 				int off = baseOffset + start;
 				int srcX = offX + cos * start;
 				int srcY = offY - sin * start;
-				for (x = 0; x < lineWidth[y]; x++) {
-					Graphics2D.target[off++] = this.pixels[(srcX >> 16) + (srcY >> 16) * this.width];
+				for (x = 0; x < rowWidth[y]; x++) {
+					Graphics2D.target[off++] = this.data[(srcX >> 16) + (srcY >> 16) * this.width];
 					srcX += cos;
 					srcY -= sin;
 				}
@@ -115,13 +184,24 @@ public class Sprite extends Graphics2D {
 		}
 	}
 
-	public void draw(int x, int y, int w, int h, int pivotX, int pivotY, int theta) {
+	/**
+	 * Draws the sprite rotated around a point.
+	 *
+	 * @param x the draw x.
+	 * @param y the draw y.
+	 * @param w the width.
+	 * @param h the height.
+	 * @param pivotX the pivot x.
+	 * @param pivotY the pivot y.
+	 * @param angle the angle.
+	 */
+	public void draw(int x, int y, int w, int h, int pivotX, int pivotY, int angle) {
 		try {
 			int cx = -w / 2;
 			int cy = -h / 2;
 
-			int sin = (int) (Math.sin((double) theta / 326.11) * 65536.0);
-			int cos = (int) (Math.cos((double) theta / 326.11) * 65536.0);
+			int sin = (int) (Math.sin((double) angle / 326.11) * 65536.0);
+			int cos = (int) (Math.cos((double) angle / 326.11) * 65536.0);
 
 			int offX = (pivotX << 16) + (cy * sin + cx * cos);
 			int offY = (pivotY << 16) + (cy * cos - cx * sin);
@@ -133,7 +213,7 @@ public class Sprite extends Graphics2D {
 				int dstY = offY - sin;
 
 				for (x = 0; x < w; x++) {
-					int rgb = pixels[(dstX >> 16) + (dstY >> 16) * width];
+					int rgb = data[(dstX >> 16) + (dstY >> 16) * width];
 
 					if (rgb != 0) {
 						Graphics2D.target[off++] = rgb;
@@ -153,28 +233,32 @@ public class Sprite extends Graphics2D {
 		}
 	}
 
+	/**
+	 * Flips the sprite horizontally.
+	 */
 	public void flipHorizontally() {
 		int[] flipped = new int[width * height];
 		int off = 0;
 		for (int y = 0; y < height; y++) {
 			for (int x = width - 1; x >= 0; x--) {
-				flipped[off++] = pixels[x + (y * width)];
+				flipped[off++] = data[x + (y * width)];
 			}
 		}
-		pixels = flipped;
-		clipX = clipWidth - width - clipX;
+		data = flipped;
 	}
 
+	/**
+	 * Flips the sprite vertically.
+	 */
 	public void flipVertically() {
 		int[] flipped = new int[width * height];
 		int off = 0;
 		for (int y = height - 1; y >= 0; y--) {
 			for (int x = 0; x < width; x++) {
-				flipped[off++] = pixels[x + (y * width)];
+				flipped[off++] = data[x + (y * width)];
 			}
 		}
-		pixels = flipped;
-		clipY = clipHeight - height - clipY;
+		data = flipped;
 	}
 
 }

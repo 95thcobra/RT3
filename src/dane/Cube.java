@@ -24,6 +24,11 @@ package dane;
  */
 public class Cube extends Model {
 
+	/**
+	 * Creates a 6 sided cube model with 8 vertices and 12 triangles.
+	 *
+	 * @param size the size of the cube.
+	 */
 	public Cube(int size) {
 		this.triangleCount = 6 * 2; // 6 sides each with 2 triangles
 		this.vertexCount = 8; // 8 corners

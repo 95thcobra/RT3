@@ -81,9 +81,8 @@ public class Graphics2D {
 	static {
 		// I just wanted a default font to play with.
 		try {
-			font = new BitmapFont(new Font("Arial", Font.PLAIN, 12));
+			font = new BitmapFont(new Font("Helvetica", Font.PLAIN, 12));
 		} catch (Exception e) {
-			e.printStackTrace();
 		}
 	}
 
@@ -209,7 +208,7 @@ public class Graphics2D {
 		Graphics3D.fillTriangle(cx, cy, 0, ovalPointX[0], ovalPointY[0], 0, ovalPointX[points - 1], ovalPointY[points - 1], 0, rgb);
 	}
 
-	/*
+	/**
 	 * Fills an opaque oval.
 	 *
 	 * @param x the x.
@@ -740,7 +739,7 @@ public class Graphics2D {
 		}
 
 		// local reference
-		int[] pixels = s.pixels;
+		int[] pixels = s.data;
 
 		// we'll be coming back to this.
 		int startU = u;
@@ -799,5 +798,8 @@ public class Graphics2D {
 		}
 
 		font.drawString(s, x, y, rgb, flags);
+	}
+
+	private Graphics2D() {
 	}
 }

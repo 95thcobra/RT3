@@ -32,7 +32,7 @@ public class GenerateGrid {
 	public static void main(String[] args) {
 		Sprite b = new Sprite(512 + 64, 512 + 64);
 
-		Graphics2D.setTarget(b.pixels, b.width, b.height);
+		Graphics2D.setTarget(b.data, b.width, b.height);
 		Graphics3D.setOffsets();
 		Graphics3D.setZBuffer();
 
@@ -90,7 +90,7 @@ public class GenerateGrid {
 
 		try {
 			BufferedImage image = new BufferedImage(b.width, b.height, BufferedImage.TYPE_INT_RGB);
-			image.setRGB(0, 0, b.width, b.height, b.pixels, 0, b.width);
+			image.setRGB(0, 0, b.width, b.height, b.data, 0, b.width);
 			ImageIO.write(image, "png", new File("grid.png"));
 		} catch (Exception e) {
 			// ignore
