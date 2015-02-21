@@ -789,8 +789,8 @@ public class Graphics2D {
 	 * @param x the x.
 	 * @param y the y.
 	 * @param rgb the color.
-	 * @param flags the flags. {
-	 * @see BitmapFont#CENTER_X}
+	 * @param flags the flags.
+	 * @see BitmapFont#CENTER_X
 	 */
 	public static void drawString(String s, int x, int y, int rgb, int flags) {
 		// we don't have a font to draw with :(

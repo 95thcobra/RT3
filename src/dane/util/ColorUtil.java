@@ -22,7 +22,19 @@ package dane.util;
  *
  * @author Dane
  */
-public class ColorUtil {
+public final class ColorUtil {
+
+	/**
+	 * Converts the red, green, and blue values to INT24_HSL.
+	 *
+	 * @param r the red.
+	 * @param g the green.
+	 * @param b the blue.
+	 * @return the hsl.
+	 */
+	public static final int rgbToHSL(int r, int g, int b) {
+		return rgbToHSL((r << 16) | (g << 8) | b);
+	}
 
 	/**
 	 * Converts an INT24_RGB value to INT24_HSL.
@@ -106,5 +118,8 @@ public class ColorUtil {
 			saturation /= 2;
 		}
 		return ((hue / 4) << 10) | ((saturation / 32) << 7) | lightness;
+	}
+
+	private ColorUtil() {
 	}
 }
