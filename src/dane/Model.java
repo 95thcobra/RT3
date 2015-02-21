@@ -1021,7 +1021,7 @@ public class Model {
 				int interpolant = (NEAR_Z - zA) * oneOverFixed1616[zC - zA];
 				tmpX[n] = cx + ((x + (((vertexProjectX[vC] - x) * interpolant) >> 16)) << 9) / NEAR_Z;
 				tmpY[n] = cy + ((y + (((vertexProjectY[vC] - y) * interpolant) >> 16)) << 9) / NEAR_Z;
-				tmpZ[n] = zA;
+				tmpZ[n] = ((zC - zA) * interpolant) >> 16;
 				tmpColor[n++] = color + ((colorC[index] - color) * interpolant >> 16);
 			}
 
@@ -1029,7 +1029,7 @@ public class Model {
 				int interpolant = (NEAR_Z - zA) * oneOverFixed1616[zB - zA];
 				tmpX[n] = (cx + (x + ((vertexProjectX[vB] - x) * interpolant >> 16) << 9) / NEAR_Z);
 				tmpY[n] = (cy + (y + ((vertexProjectY[vB] - y) * interpolant >> 16) << 9) / NEAR_Z);
-				tmpZ[n] = zA;
+				tmpZ[n] = ((zB - zA) * interpolant) >> 16;
 				tmpColor[n++] = color + ((colorB[index] - color) * interpolant >> 16);
 			}
 		}
@@ -1048,7 +1048,7 @@ public class Model {
 				int interpolant = (NEAR_Z - zB) * oneOverFixed1616[zA - zB];
 				tmpX[n] = (cx + (x + ((vertexProjectX[vA] - x) * interpolant >> 16) << 9) / NEAR_Z);
 				tmpY[n] = (cy + (y + ((vertexProjectY[vA] - y) * interpolant >> 16) << 9) / NEAR_Z);
-				tmpZ[n] = zB;
+				tmpZ[n] = ((zA - zB) * interpolant) >> 16;
 				tmpColor[n++] = color + ((colorA[index] - color) * interpolant >> 16);
 			}
 
@@ -1056,7 +1056,7 @@ public class Model {
 				int interpolant = (NEAR_Z - zB) * oneOverFixed1616[zC - zB];
 				tmpX[n] = (cx + (x + ((vertexProjectX[vC] - x) * interpolant >> 16) << 9) / NEAR_Z);
 				tmpY[n] = (cy + (y + ((vertexProjectY[vC] - y) * interpolant >> 16) << 9) / NEAR_Z);
-				tmpZ[n] = zB;
+				tmpZ[n] = ((zC - zB) * interpolant) >> 16;
 				tmpColor[n++] = color + ((colorC[index] - color) * interpolant >> 16);
 			}
 		}
@@ -1075,7 +1075,7 @@ public class Model {
 				int interpolant = (NEAR_Z - zC) * (oneOverFixed1616[zB - zC]);
 				tmpX[n] = (cx + (x + (((vertexProjectX[vB] - x) * interpolant) >> 16) << 9) / NEAR_Z);
 				tmpY[n] = (cy + (y + (((vertexProjectY[vB] - y) * interpolant) >> 16) << 9) / NEAR_Z);
-				tmpZ[n] = zC;
+				tmpZ[n] = ((zB - zC) * interpolant) >> 16;
 				tmpColor[n++] = color + ((colorB[index] - color) * interpolant >> 16);
 			}
 
@@ -1083,7 +1083,7 @@ public class Model {
 				int interpolant = (NEAR_Z - zC) * oneOverFixed1616[zA - zC];
 				tmpX[n] = (cx + (x + (((vertexProjectX[vA] - x) * interpolant) >> 16) << 9) / NEAR_Z);
 				tmpY[n] = (cy + (y + (((vertexProjectY[vA] - y) * interpolant) >> 16) << 9) / NEAR_Z);
-				tmpZ[n] = zC;
+				tmpZ[n] = ((zA - zC) * interpolant) >> 16;
 				tmpColor[n++] = color + ((colorA[index] - color) * interpolant >> 16);
 			}
 		}
@@ -1099,11 +1099,7 @@ public class Model {
 		if (((xA - xB) * (yC - yB) - (yA - yB) * (xC - xB)) > 0) {
 			Graphics3D.testX = false;
 
-			if (n == 0) {
-				Graphics2D.fillRect(xA - 1, yA - 1, 3, 3, 0xFF0000);
-				Graphics2D.fillRect(xB - 1, yB - 1, 3, 3, 0xFF00);
-				Graphics2D.fillRect(xC - 1, yC - 1, 3, 3, 0xFF);
-			} else if (n == 3) {
+			if (n == 3) {
 				if (xA < 0 || xB < 0 || xC < 0 || xA > Graphics2D.rightX || xB > Graphics2D.rightX || xC > Graphics2D.rightX) {
 					Graphics3D.testX = true;
 				}
