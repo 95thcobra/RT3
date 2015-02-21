@@ -35,36 +35,33 @@ public class Cube extends Model {
 		this.setTriangleCount(6 * 2);// 6 sides each with 2 triangles
 		this.setVertexCount(8); // 8 corners
 
-		// a b
-		// |\|
-		// c d
-		int a = setVertex(0, 0, 0, 0);
-		int b = setVertex(1, size, 0, 0);
-		int c = setVertex(2, 0, 0, size);
-		int d = setVertex(3, size, 0, size);
+		int a = setVertex(0, size, -size, -size);
+		int b = setVertex(1, size, size, -size);
+		int c = setVertex(2, size, size, size);
+		int d = setVertex(3, -size, -size, -size);
 
-		int e = setVertex(4, 0, size, 0);
-		int f = setVertex(5, size, size, 0);
-		int g = setVertex(6, 0, size, size);
-		int h = setVertex(7, size, size, size);
+		int e = setVertex(4, -size, size, -size);
+		int f = setVertex(5, -size, -size, size);
+		int g = setVertex(6, -size, size, size);
+		int h = setVertex(7, size, -size, size);
 
-		setTriangle(0, c, a, d);
-		setTriangle(1, a, b, d);
+		setTriangle(0, a, b, c);
+		setTriangle(1, d, e, b);
 
-		setTriangle(2, g, e, f);
-		setTriangle(3, h, f, g);
+		setTriangle(2, f, g, e);
+		setTriangle(3, h, c, g);
 
-		setTriangle(4, a, e, b);
-		setTriangle(5, f, e, b);
+		setTriangle(4, b, e, g);
+		setTriangle(5, d, a, h);
 
-		setTriangle(6, b, f, d);
-		setTriangle(7, h, f, d);
+		setTriangle(6, h, a, c);
+		setTriangle(7, a, d, b);
 
-		setTriangle(8, d, h, c);
-		setTriangle(9, g, h, c);
+		setTriangle(8, d, f, e);
+		setTriangle(9, f, h, g);
 
-		setTriangle(10, g, c, e);
-		setTriangle(11, a, c, e);
+		setTriangle(10, c, b, g);
+		setTriangle(11, f, d, h);
 	}
 
 }
