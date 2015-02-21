@@ -3,6 +3,7 @@ package dane.test;
 import dane.*;
 import java.awt.event.*;
 import java.io.*;
+import java.util.*;
 import java.util.logging.*;
 import javax.swing.*;
 
@@ -32,6 +33,23 @@ public class Test3D extends TestApplet {
 
 	private static final Logger logger = Logger.getLogger(Test3D.class.getName());
 
+	private static class TestEntity {
+
+		public int x, y, z;
+		public int pitch, yaw;
+		public Model model;
+		public int bitset;
+
+		public void draw(int cameraPitchSine, int cameraPitchCosine, int cameraYawSine, int cameraYawCosine, int cameraX, int cameraY, int cameraZ) {
+			if (model == null) {
+				return;
+			}
+
+			model.draw(this.pitch, this.yaw, cameraPitchSine, cameraPitchCosine, cameraYawSine, cameraYawCosine, cameraX - x, cameraY - y, cameraZ - z, bitset);
+		}
+
+	}
+
 	public static void main(String[] args) throws Throwable {
 		JFrame f = new JFrame();
 
@@ -48,7 +66,7 @@ public class Test3D extends TestApplet {
 	}
 
 	Sprite sprite;
-	Model model;
+	List<TestEntity> entities = new ArrayList<>();
 	Model grid;
 	int rotation = 0;
 
@@ -72,14 +90,26 @@ public class Test3D extends TestApplet {
 			Logger.getLogger(Test3D.class.getName()).log(Level.SEVERE, null, ex);
 		}
 
-		try {
-			model = ModelReader.get("ply").read(new File("cube.ply"));
-			model.setColor(64);
-			model.calculateBoundaries();
-			model.calculateNormals();
-			model.calculateLighting(64, 768, -50, -50, -30);
-		} catch (Exception e) {
-			logger.log(Level.WARNING, null, e);
+		int x = 0;
+
+		for (String s : new String[]{"cube.ply", "icosphere.ply", "suzanne.ply"}) {
+			try {
+				Model m = ModelReader.get("ply").read(new File(s));
+				m.setColor(64);
+				m.calculateBoundaries();
+				m.calculateNormals();
+				m.calculateLighting(64, 768, -50, -50, -30);
+
+				TestEntity e = new TestEntity();
+				e.x = x;
+				e.y = 200;
+				e.model = m;
+				entities.add(e);
+
+				x += 512;
+			} catch (Exception e) {
+				logger.log(Level.WARNING, null, e);
+			}
 		}
 
 		for (int i = 0; i < grid.vertexCount; i++) {
@@ -189,8 +219,10 @@ public class Test3D extends TestApplet {
 		int flags = DRAW_MODEL | DRAW_DEBUG | DRAW_ORIGIN_DOT;
 
 		if ((flags & DRAW_MODEL) != 0) {
-			if (model != null) {
-				model.draw(0, 0, cameraPitchSine, cameraPitchCosine, cameraYawSine, cameraYawCosine, cameraX, cameraY - 300, cameraZ, 1);
+			for (TestEntity e : entities) {
+				e.draw(cameraPitchSine, cameraPitchCosine, cameraYawSine, cameraYawCosine, cameraX, cameraY, cameraZ);
+				e.yaw += 8;
+				e.yaw &= 0x7FF;
 			}
 
 			grid.draw(0, 0, cameraPitchSine, cameraPitchCosine, cameraYawSine, cameraYawCosine, cameraX, cameraY, cameraZ, 1);
