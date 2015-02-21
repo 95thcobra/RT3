@@ -95,7 +95,7 @@ public class Test3D extends TestApplet {
 
 		long time = System.nanoTime();
 		{
-			grid = new Grid(13312 / 4, 104 / 4, 104 / 4);
+			grid = new Grid(13312, 64, 64);
 
 			for (int i = 0; i < grid.vertexCount; i++) {
 				grid.vertexY[i] += (int) (Math.random() * 128);
@@ -124,11 +124,11 @@ public class Test3D extends TestApplet {
 
 		time = System.nanoTime();
 		{
-			int x = 0;
-			for (String s : new String[]{"cube.ply", "icosphere.ply", "suzanne.ply"}) {
+			int x = -1280;
+			for (String s : new String[]{"cube.ply", "icosphere.ply", "cone.ply", "torus.ply", "torusknot.ply", "teapot.ply", "suzanne.ply"}) {
 				try {
 					Model m = ModelReader.get("ply").read(new File(s));
-					m.setColor(64);
+					m.setColor(96);
 					m.calculateBoundaries();
 					m.calculateNormals();
 					m.calculateLighting(64, 768, -50, -50, -30);

@@ -25,6 +25,16 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 
 /**
+ * PLY is a computer file format known as the Polygon File Format or the Stanford Triangle Format.
+ *
+ * The format was principally designed to store three-dimensional data from 3D scanners. It supports a relatively simple
+ * description of a single object as a list of nominally flat polygons. A variety of properties can be stored including:
+ * color and transparency, surface normals, texture coordinates and data confidence values. The format permits one to
+ * have different properties for the front and back of a polygon.
+ *
+ * There are two versions of the file format, one in ASCII, the other in binary.
+ *
+ * This class currently only reads the ASCII format.
  *
  * @author Dane
  */
