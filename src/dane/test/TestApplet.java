@@ -18,12 +18,21 @@
  */
 package dane.test;
 
-import dane.*;
-import java.awt.*;
-import java.awt.event.*;
-import java.awt.image.*;
-import java.util.*;
-import javax.swing.*;
+import dane.media3d.Graphics3D;
+import dane.scene.Model;
+import java.awt.Graphics;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
+import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferInt;
+import java.util.HashMap;
+import java.util.Map;
+import javax.swing.JApplet;
 
 /**
  *
@@ -65,7 +74,7 @@ public abstract class TestApplet extends JApplet implements Runnable, KeyListene
 		width = w;
 		height = h;
 
-		dane.Graphics2D.setTarget(pixels, width, height);
+		dane.media2d.Graphics2D.setTarget(pixels, width, height);
 		Graphics3D.setOffsets();
 		Graphics3D.setZBuffer(width, height);
 		Graphics3D.createPalette(1.0);

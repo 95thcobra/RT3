@@ -1,11 +1,21 @@
 package dane.test;
 
-import dane.*;
-import java.awt.event.*;
-import java.io.*;
-import java.util.*;
-import java.util.logging.*;
-import javax.swing.*;
+import dane.media2d.BitmapFont;
+import dane.media2d.Graphics2D;
+import dane.media2d.Sprite;
+import dane.media3d.Graphics3D;
+import dane.media3d.model.ModelReader;
+import dane.scene.Model;
+import dane.scene.primitive.Grid;
+import java.awt.event.KeyEvent;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.JFrame;
+
 
 /*
  * Copyright (C) 2015 Dane.

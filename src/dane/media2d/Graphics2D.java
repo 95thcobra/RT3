@@ -1,4 +1,4 @@
-package dane;
+package dane.media2d;
 
 /*
  * Copyright (C) 2015 Dane.
@@ -18,9 +18,10 @@ package dane;
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301  USA
  */
-import dane.Graphics2D;
-import java.awt.*;
-import java.util.*;
+import dane.media3d.Graphics3D;
+import dane.scene.Model;
+import java.awt.Font;
+import java.util.Arrays;
 
 /**
  *
@@ -201,11 +202,11 @@ public class Graphics2D {
 			x = ovalPointX[i - 1];
 			y = ovalPointY[i - 1];
 
-			Graphics3D.fillTriangle(cx, cy, 0, x, y, 0, ovalPointX[i], ovalPointY[i], 0, rgb);
+			Graphics3D.fillTriangleDepth(cx, cy, 0, x, y, 0, ovalPointX[i], ovalPointY[i], 0, rgb);
 		}
 
 		// fill from last point to first point (last triangle)
-		Graphics3D.fillTriangle(cx, cy, 0, ovalPointX[0], ovalPointY[0], 0, ovalPointX[points - 1], ovalPointY[points - 1], 0, rgb);
+		Graphics3D.fillTriangleDepth(cx, cy, 0, ovalPointX[0], ovalPointY[0], 0, ovalPointX[points - 1], ovalPointY[points - 1], 0, rgb);
 	}
 
 	/**

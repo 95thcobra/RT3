@@ -1,4 +1,4 @@
-package dane;
+package dane.media2d;
 
 import java.awt.image.*;
 import java.io.*;

@@ -18,10 +18,12 @@
  */
 package dane.test;
 
-import dane.*;
-import java.awt.image.*;
-import java.io.*;
-import javax.imageio.*;
+import dane.media2d.Graphics2D;
+import dane.media2d.Sprite;
+import dane.media3d.Graphics3D;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import javax.imageio.ImageIO;
 
 /**
  *
@@ -84,8 +86,8 @@ public class GenerateGrid {
 
 			a++;
 
-			Graphics3D.fillTriangle(aX, aY, 0, bX, bY, 0, cX, cY, 0, (int) (0x7F + (Math.random() * 0x7F)) << 8);
-			Graphics3D.fillTriangle(cX, cY, 0, bX, bY, 0, dX, dY, 0, (int) (0x7F + (Math.random() * 0x7F)) << 8);
+			Graphics3D.fillTriangleDepth(aX, aY, 0, bX, bY, 0, cX, cY, 0, (int) (0x7F + (Math.random() * 0x7F)) << 8);
+			Graphics3D.fillTriangleDepth(cX, cY, 0, bX, bY, 0, dX, dY, 0, (int) (0x7F + (Math.random() * 0x7F)) << 8);
 		}
 
 		try {

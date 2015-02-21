@@ -1,5 +1,7 @@
-package dane;
+package dane.scene;
 
+import dane.media2d.Graphics2D;
+import dane.media3d.Graphics3D;
 import java.util.*;
 
 /*
@@ -1014,7 +1016,7 @@ public class Model {
 			if (type == 0) {
 				Graphics3D.fillShadedTriangleDepth(vertexScreenX[a], vertexScreenY[a], vertexDepth[a], vertexScreenX[b], vertexScreenY[b], vertexDepth[b], vertexScreenX[c], vertexScreenY[c], vertexDepth[c], colorA[index], colorB[index], colorC[index]);
 			} else if (type == 1) {
-				Graphics3D.fillTriangle(vertexScreenX[a], vertexScreenY[a], vertexDepth[a], vertexScreenX[b], vertexScreenY[b], vertexDepth[b], vertexScreenX[c], vertexScreenY[c], vertexDepth[c], palette[colorA[index]]);
+				Graphics3D.fillTriangleDepth(vertexScreenX[a], vertexScreenY[a], vertexDepth[a], vertexScreenX[b], vertexScreenY[b], vertexDepth[b], vertexScreenX[c], vertexScreenY[c], vertexDepth[c], palette[colorA[index]]);
 			}
 		}
 	}
@@ -1145,7 +1147,7 @@ public class Model {
 				if (type == 0) {
 					Graphics3D.fillShadedTriangleDepth(xA, yA, zA, xB, yB, zB, xC, yC, zC, tmpColor[0], tmpColor[1], tmpColor[2]);
 				} else if (type == 1) {
-					Graphics3D.fillTriangle(xA, yA, zA, xB, yB, zB, xC, yC, zC, palette[colorA[index]]);
+					Graphics3D.fillTriangleDepth(xA, yA, zA, xB, yB, zB, xC, yC, zC, palette[colorA[index]]);
 				}
 			} else if (n == 4) {
 				if (xA < 0 || xB < 0 || xC < 0 || xA > Graphics2D.rightX || xB > Graphics2D.rightX || xC > Graphics2D.rightX || tmpX[3] < 0 || tmpX[3] > Graphics2D.rightX) {
@@ -1168,8 +1170,8 @@ public class Model {
 					Graphics3D.fillShadedTriangleDepth(xA, yA, zA, xC, yC, zC, tmpX[3], tmpY[3], tmpZ[3], tmpColor[0], tmpColor[2], tmpColor[3]);
 				} else if (type == 1) {
 					int rgb = palette[colorA[index]];
-					Graphics3D.fillTriangle(xA, yA, zA, xB, yB, zB, xC, yC, zC, rgb);
-					Graphics3D.fillTriangle(xA, yA, zA, xC, yC, zC, tmpX[3], tmpY[3], tmpZ[3], rgb);
+					Graphics3D.fillTriangleDepth(xA, yA, zA, xB, yB, zB, xC, yC, zC, rgb);
+					Graphics3D.fillTriangleDepth(xA, yA, zA, xC, yC, zC, tmpX[3], tmpY[3], tmpZ[3], rgb);
 				}
 			}
 		}

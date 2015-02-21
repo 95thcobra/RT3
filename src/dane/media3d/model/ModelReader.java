@@ -16,11 +16,15 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301  USA
  */
-package dane;
+package dane.media3d.model;
 
-import java.io.*;
-import java.net.*;
-import java.util.*;
+import dane.scene.Model;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * An abstract superclass for parsing and decoding of models.
@@ -29,6 +33,9 @@ import java.util.*;
  */
 public abstract class ModelReader {
 
+	/**
+	 * The map for registered readers.
+	 */
 	private static final Map<String, ModelReader> formats = new HashMap<>();
 
 	static {
