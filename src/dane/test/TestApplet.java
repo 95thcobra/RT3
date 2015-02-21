@@ -186,7 +186,13 @@ public abstract class TestApplet extends JApplet implements Runnable, KeyListene
 
 			draw();
 			appletGraphics.drawImage(image, 0, 0, null);
-			this.frameTime = (System.nanoTime() - nano) / 1_000_000.0;
+
+			if (this.frameTime == 0) {
+				this.frameTime = (System.nanoTime() - nano) / 1_000_000.0;
+			} else {
+				this.frameTime += (System.nanoTime() - nano) / 1_000_000.0;
+				this.frameTime /= 2;
+			}
 		}
 	}
 

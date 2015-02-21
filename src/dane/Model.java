@@ -27,6 +27,11 @@ import java.util.*;
 public class Model {
 
 	/**
+	 * The number of triangles drawn in the last frame.
+	 */
+	public static int frameTriangleCount;
+
+	/**
 	 * Used to check if the mouse is within a triangle for input on a model.
 	 */
 	public static boolean allowInput;
@@ -769,16 +774,6 @@ public class Model {
 	}
 
 	/**
-	 * The screen boundaries of the last drawn model.
-	 */
-	public static int sx1, sx2, sy1, sy2;
-
-	/**
-	 * Whether the last draw call was successful.
-	 */
-	public static boolean drawingModel = false;
-
-	/**
 	 * Draws the model.
 	 *
 	 * @param pitch the model pitch.
@@ -797,8 +792,6 @@ public class Model {
 		int farZ = sceneY * cameraPitchSine + a * cameraPitchCosine >> 16;
 		int c = boundLengthXZ * cameraPitchCosine >> 16;
 
-		drawingModel = false;
-
 		int nearZ = farZ + c;
 
 		if (nearZ <= NEAR_Z || farZ >= FAR_Z) {
@@ -813,15 +806,11 @@ public class Model {
 			return;
 		}
 
-		sx1 = (minX / nearZ);
-
 		int maxX = e + boundLengthXZ << 9;
 
 		if (maxX / nearZ <= -Graphics2D.halfWidth) {
 			return;
 		}
-
-		sx2 = (maxX / nearZ);
 
 		int h = sceneY * cameraPitchCosine - a * cameraPitchSine >> 16;
 		int i = boundLengthXZ * cameraPitchSine >> 16;
@@ -832,17 +821,12 @@ public class Model {
 			return;
 		}
 
-		sy2 = (maxY / nearZ);
-
 		int k = i + (maxBoundY * cameraPitchCosine >> 16);
 		int minY = h - k << 9;
 
 		if (minY / nearZ >= Graphics2D.halfHeight) {
 			return;
 		}
-
-		drawingModel = true;
-		sy1 = (minY / nearZ);
 
 		int m = c + (maxBoundY * cameraPitchSine >> 16);
 		boolean project = false;
@@ -1002,6 +986,8 @@ public class Model {
 	 * @param index the triangle index.
 	 */
 	private void drawTriangle(int index) {
+		frameTriangleCount++;
+
 		if (correctTriangleZ[index]) {
 			drawCorrectedTriangle(index);
 		} else {
@@ -1173,6 +1159,9 @@ public class Model {
 				} else {
 					type = triangleType[index] & 0x3;
 				}
+
+				// one extra
+				frameTriangleCount++;
 
 				if (type == 0) {
 					Graphics3D.fillShadedTriangleDepth(xA, yA, zA, xB, yB, zB, xC, yC, zC, tmpColor[0], tmpColor[1], tmpColor[2]);

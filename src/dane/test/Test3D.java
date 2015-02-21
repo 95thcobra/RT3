@@ -76,52 +76,67 @@ public class Test3D extends TestApplet {
 	int cameraY = 512;
 	int cameraZ = 1024;
 
+	public boolean dragging = false;
+	public int dragX = -1;
+	public int dragY = -1;
+
 	public Test3D() {
 		Graphics3D.texturedShading = false;
 
 		long time = System.nanoTime();
-		grid = new Grid(13312 / 4, 104 / 4, 104 / 4);
+		{
+			grid = new Grid(13312 / 4, 104 / 4, 104 / 4);
+
+			for (int i = 0; i < grid.vertexCount; i++) {
+				grid.vertexY[i] += (int) (Math.random() * 128);
+			}
+
+			// we need bounds before we center
+			grid.calculateBoundaries();
+			grid.translate(-grid.maxBoundX / 2, -grid.minBoundY / 2, -grid.maxBoundZ / 2);
+			grid.setColor((14 << 10) | (3 << 7) | 88);
+			grid.calculateNormals();
+			grid.calculateLighting(64, 768, -50, -50, -30);
+		}
 		time = System.nanoTime() - time;
 		System.out.println("Grid took " + String.format("%sms", time / 1_000_000.0) + " to create.");
 
-		try {
-			sprite = Sprite.load(new File("test.png"));
-		} catch (IOException ex) {
-			Logger.getLogger(Test3D.class.getName()).log(Level.SEVERE, null, ex);
-		}
-
-		int x = 0;
-
-		for (String s : new String[]{"cube.ply", "icosphere.ply", "suzanne.ply"}) {
+		time = System.nanoTime();
+		{
 			try {
-				Model m = ModelReader.get("ply").read(new File(s));
-				m.setColor(64);
-				m.calculateBoundaries();
-				m.calculateNormals();
-				m.calculateLighting(64, 768, -50, -50, -30);
-
-				TestEntity e = new TestEntity();
-				e.x = x;
-				e.y = 200;
-				e.model = m;
-				entities.add(e);
-
-				x += 512;
-			} catch (Exception e) {
-				logger.log(Level.WARNING, null, e);
+				sprite = Sprite.load(new File("test.png"));
+			} catch (IOException ex) {
+				logger.log(Level.SEVERE, null, ex);
 			}
 		}
+		time = System.nanoTime() - time;
+		System.out.println("Sprite took " + String.format("%sms", time / 1_000_000.0) + " to load.");
 
-		for (int i = 0; i < grid.vertexCount; i++) {
-			grid.vertexY[i] += (int) (Math.random() * 128);
+		time = System.nanoTime();
+		{
+			int x = 0;
+			for (String s : new String[]{"cube.ply", "icosphere.ply", "suzanne.ply"}) {
+				try {
+					Model m = ModelReader.get("ply").read(new File(s));
+					m.setColor(64);
+					m.calculateBoundaries();
+					m.calculateNormals();
+					m.calculateLighting(64, 768, -50, -50, -30);
+
+					TestEntity e = new TestEntity();
+					e.x = x;
+					e.y = 200;
+					e.model = m;
+					entities.add(e);
+
+					x += 512;
+				} catch (Exception e) {
+					logger.log(Level.WARNING, null, e);
+				}
+			}
 		}
-
-		// we need bounds before we center
-		grid.calculateBoundaries();
-		grid.translate(-grid.maxBoundX / 2, -grid.minBoundY / 2, -grid.maxBoundZ / 2);
-		grid.setColor((14 << 10) | (3 << 7) | 88);
-		grid.calculateNormals();
-		grid.calculateLighting(64, 768, -50, -50, -30);
+		time = System.nanoTime() - time;
+		System.out.println("Models took " + String.format("%sms", time / 1_000_000.0) + " to load.");
 
 		System.gc();
 	}
@@ -154,10 +169,6 @@ public class Test3D extends TestApplet {
 		cameraY += offsetY;
 		cameraZ += offsetZ;
 	}
-
-	public boolean dragging = false;
-	public int dragX = -1;
-	public int dragY = -1;
 
 	@Override
 	public void update() {
@@ -205,6 +216,8 @@ public class Test3D extends TestApplet {
 	}
 
 	public void draw() {
+		Model.frameTriangleCount = 0;
+
 		Graphics2D.clear(0xBFEEFF);
 		Graphics3D.clearZBuffer();
 
@@ -264,19 +277,13 @@ public class Test3D extends TestApplet {
 			Graphics2D.drawString("Mem: " + (r.totalMemory() - r.freeMemory()) / 1024 + "k", x, y, color, BitmapFont.SHADOW);
 			y += Graphics2D.font.height;
 
-			Graphics2D.drawString("Drawing model: " + Model.drawingModel, x, y, color, BitmapFont.SHADOW);
-			y += Graphics2D.font.height;
-
-			Graphics2D.drawString("Triangles: " + grid.triangleCount, x, y, color, BitmapFont.SHADOW);
-			y += Graphics2D.font.height;
-
-			Graphics2D.drawString("Vertices: " + grid.vertexCount, x, y, color, BitmapFont.SHADOW);
+			Graphics2D.drawString("Triangles: " + Model.frameTriangleCount, x, y, color, BitmapFont.SHADOW);
 			y += Graphics2D.font.height;
 
 			Graphics2D.drawString("Fps: " + fps, x, y, color, BitmapFont.SHADOW);
 			y += Graphics2D.font.height;
 
-			Graphics2D.drawString("Ft: " + frameTime, x, y, color, BitmapFont.SHADOW);
+			Graphics2D.drawString("Ft: " + (Math.round(frameTime * 10000.0) / 10000.0) + "ms", x, y, color, BitmapFont.SHADOW);
 			y += Graphics2D.font.height;
 
 			y += 32;
