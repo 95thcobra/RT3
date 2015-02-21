@@ -244,19 +244,33 @@ public class Test3D extends TestApplet {
 		if ((flags & DRAW_DEBUG) != 0) {
 			Runtime r = Runtime.getRuntime();
 
-			graphics.drawString("Mem: " + (r.totalMemory() - r.freeMemory()) / 1024 + "k", 8, 16);
-			graphics.drawString("Drawing model: " + Model.drawingModel, 8, 32);
-			graphics.drawString("Triangles: " + model.triangleCount, 8, 48);
-			graphics.drawString("Vertices: " + model.vertexCount, 8, 64);
-			graphics.drawString("Fps: " + fps, 8, 80);
-			graphics.drawString("Ft: " + frameTime, 8, 96);
+			int x = 8;
+			int y = 16;
+			int color = 0xFFFFFF;
+
+			Graphics2D.drawString("Mem: " + (r.totalMemory() - r.freeMemory()) / 1024 + "k", x, y, color, BitmapFont.SHADOW);
+			y += Graphics2D.font.height;
+
+			Graphics2D.drawString("Drawing model: " + Model.drawingModel, x, y, color, BitmapFont.SHADOW);
+			y += Graphics2D.font.height;
+
+			Graphics2D.drawString("Triangles: " + model.triangleCount, x, y, color, BitmapFont.SHADOW);
+			y += Graphics2D.font.height;
+
+			Graphics2D.drawString("Vertices: " + model.vertexCount, x, y, color, BitmapFont.SHADOW);
+			y += Graphics2D.font.height;
+
+			Graphics2D.drawString("Fps: " + fps, x, y, color, BitmapFont.SHADOW);
+			y += Graphics2D.font.height;
+
+			Graphics2D.drawString("Ft: " + frameTime, x, y, color, BitmapFont.SHADOW);
+			y += Graphics2D.font.height;
 		}
 
 		int w = 128 + (96 * Model.sin[rotation] >> 16);
 		int h = 128 + (96 * Model.cos[rotation] >> 16);
 		sprite.draw((width - w) / 2, (height - h) / 2, w, h);
 
-		Graphics2D.drawString("I AM A TEST MESSAGE OMFG!", 0, 0, 0xFF0000);
 	}
 
 }
