@@ -18,6 +18,8 @@ package dane;
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301  USA
  */
+import dane.Graphics2D;
+import java.awt.*;
 import java.util.*;
 
 /**
@@ -30,6 +32,11 @@ public class Graphics2D {
 	 * The array being modified by the operations in this class.
 	 */
 	public static int[] target;
+
+	/**
+	 * The font being used to draw strings.
+	 */
+	public static BitmapFont font;
 
 	/**
 	 * The dimensions of the destintaion.
@@ -70,6 +77,15 @@ public class Graphics2D {
 	 * Dimension for drawing pixels
 	 */
 	private static int drawWidth, drawHeight;
+
+	static {
+		// I just wanted a default font to play with.
+		try {
+			font = new BitmapFont(new Font("Arial", Font.PLAIN, 12));
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
 
 	/**
 	 * Fills our target with 0's.
@@ -523,6 +539,15 @@ public class Graphics2D {
 		}
 	}
 
+	/**
+	 * A helper method used to clip bounds and return whether the boundary is larger than one pixel or naw.
+	 *
+	 * @param x the x.
+	 * @param y the y.
+	 * @param w the width.
+	 * @param h the height.
+	 * @return w > 0 && h > 0
+	 */
 	public static final boolean testBounds(int x, int y, int w, int h) {
 		targetOffset = x + (y * targetWidth);
 		srcOffset = 0;
@@ -569,6 +594,16 @@ public class Graphics2D {
 		return w > 0 && h > 0;
 	}
 
+	/**
+	 * Fills in the mask with the provided color on the target.
+	 *
+	 * @param x the x.
+	 * @param y the y.
+	 * @param w the width.
+	 * @param h the height.
+	 * @param mask the mask.
+	 * @param rgb the fill color.
+	 */
 	public static void drawPixelMask(int x, int y, int w, int h, byte[] mask, int rgb) {
 		if (testBounds(x, y, w, h)) {
 			for (y = 0; y < drawHeight; y++) {
@@ -586,6 +621,15 @@ public class Graphics2D {
 		}
 	}
 
+	/**
+	 * Draws the provided pixels to the target.
+	 *
+	 * @param x the x.
+	 * @param y the y.
+	 * @param w the pixel array width.
+	 * @param h the pixel array height.
+	 * @param pixels the pixel array.
+	 */
 	public static void drawPixels(int x, int y, int w, int h, int[] pixels) {
 		if (testBounds(x, y, w, h)) {
 			for (y = 0; y < drawHeight; y++) {
@@ -603,4 +647,157 @@ public class Graphics2D {
 		}
 	}
 
+	/**
+	 * draws the provided pixels to the target translucently.
+	 *
+	 * @param x the x.
+	 * @param y the y.
+	 * @param w the pixel array width.
+	 * @param h the pixel array height.
+	 * @param pixels the pixel array.
+	 * @param alpha the alpha.
+	 */
+	public static void drawPixels(int x, int y, int w, int h, int[] pixels, int alpha) {
+		int alphaInverted = 256 - alpha;
+		if (testBounds(x, y, w, h)) {
+			for (y = 0; y < drawHeight; y++) {
+				for (x = 0; x < drawWidth; x++) {
+					int src = pixels[srcOffset++];
+
+					src = ((src & 0xFF00FF) * alpha >> 8 & 0xFF00FF) + ((src & 0xFF00) * alpha >> 8 & 0xFF00);
+
+					if (src != 0) {
+						int dst = target[targetOffset];
+						target[targetOffset++] = ((((src & 0xff00ff) * alpha + (dst & 0xff00ff) * alphaInverted) & ~0xff00ff) + (((src & 0xff00) * alpha + (dst & 0xff00) * alphaInverted) & 0xff0000)) >> 8;
+					} else {
+						targetOffset++;
+					}
+				}
+				targetOffset += targetStep;
+				srcOffset += srcStep;
+			}
+		}
+	}
+
+	/**
+	 * Draws a sprite to the target.
+	 *
+	 * @param s the sprite.
+	 * @param x the x.
+	 * @param y the y.
+	 * @param w the draw width.
+	 * @param h the draw height.
+	 */
+	public static void drawSprite(Sprite s, int x, int y, int w, int h) {
+		if (w <= 1 || h <= 1) {
+			return;
+		}
+
+		targetOffset = x + (y * targetWidth);
+		targetStep = targetWidth - w;
+
+		// our texture coordinates as 24.8 fixed points
+		int u = 0, v = 0;
+		int uStep = (s.width << 8) / w;
+		int vStep = (s.height << 8) / h;
+
+		// clip the top
+		if (y < top) {
+			int cut = top - y;
+			h -= cut;
+			y = top;
+
+			v += vStep * cut;
+			targetOffset += cut * targetWidth;
+		}
+
+		// clip the bottom
+		if (y + h > bottom) {
+			h -= (y + h) - bottom;
+		}
+
+		// clip the left
+		if (x < left) {
+			int cut = left - x;
+			w -= cut;
+			x = left;
+
+			u += (cut << 8);
+			targetOffset += cut;
+			targetStep += cut;
+		}
+
+		// clip the right
+		if (x + w > right) {
+			int cut = (x + w) - right;
+			w -= cut;
+			targetStep += cut;
+		}
+
+		// if our image is too small then just don't draw it.
+		if (w <= 1 || h <= 1) {
+			return;
+		}
+
+		// local reference
+		int[] pixels = s.pixels;
+
+		// we'll be coming back to this.
+		int startU = u;
+
+		for (y = 0; y < h; y++) {
+
+			// this only needs to be calculated once per row
+			int vOffset = (v >> 8) * s.width;
+
+			// loop through row
+			for (x = 0; x < w; x++) {
+				// apply values
+				target[targetOffset++] = pixels[(u >> 8) + vOffset];
+
+				// step to the right
+				u += uStep;
+			}
+
+			// step down a row of pixels on the destination
+			targetOffset += Graphics2D.targetWidth - w;
+
+			// step down vertically
+			v += vStep;
+
+			// reset back to left
+			u = startU;
+		}
+	}
+
+	/**
+	 * Draws a string to the target with the current set font.
+	 *
+	 * @param s the string.
+	 * @param x the x.
+	 * @param y the y.
+	 * @param rgb the color.
+	 */
+	public static void drawString(String s, int x, int y, int rgb) {
+		drawString(s, x, y, rgb, 0);
+	}
+
+	/**
+	 * Draws a string to the target with the current set font.
+	 *
+	 * @param s the string.
+	 * @param x the x.
+	 * @param y the y.
+	 * @param rgb the color.
+	 * @param flags the flags. {
+	 * @see BitmapFont#CENTER_X}
+	 */
+	public static void drawString(String s, int x, int y, int rgb, int flags) {
+		// we don't have a font to draw with :(
+		if (font == null) {
+			return;
+		}
+
+		font.drawString(s, x, y, rgb, flags);
+	}
 }

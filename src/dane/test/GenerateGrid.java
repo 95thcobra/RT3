@@ -30,7 +30,7 @@ import javax.imageio.*;
 public class GenerateGrid {
 
 	public static void main(String[] args) {
-		Bitmap b = new Bitmap(512 + 64, 512 + 64);
+		Sprite b = new Sprite(512 + 64, 512 + 64);
 
 		Graphics2D.setTarget(b.pixels, b.width, b.height);
 		Graphics3D.setOffsets();

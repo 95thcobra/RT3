@@ -2,6 +2,7 @@ package dane.test;
 
 import dane.*;
 import java.awt.event.*;
+import java.io.*;
 import java.util.logging.*;
 import javax.swing.*;
 
@@ -46,6 +47,7 @@ public class Test3D extends TestApplet {
 		f.setVisible(true);
 	}
 
+	Sprite sprite;
 	Model cube;
 	Model model;
 	int rotation = 0;
@@ -60,9 +62,15 @@ public class Test3D extends TestApplet {
 		Graphics3D.texturedShading = false;
 
 		long time = System.nanoTime();
-		model = new Grid(1024, 64, 64);
+		model = new Grid(13312 / 4, 104 / 4, 104 / 4);
 		time = System.nanoTime() - time;
 		System.out.println("Grid took " + String.format("%sms", time / 1_000_000.0) + " to create.");
+
+		try {
+			sprite = Sprite.load(new File("test.png"));
+		} catch (IOException ex) {
+			Logger.getLogger(Test3D.class.getName()).log(Level.SEVERE, null, ex);
+		}
 
 		cube = new Cube(64);
 
@@ -72,7 +80,7 @@ public class Test3D extends TestApplet {
 		cube.triangleColor = new int[cube.triangleCount];
 
 		for (int i = 0; i < cube.triangleCount; i++) {
-			cube.triangleColor[i] = ((14 + (int) (Math.random() * 64)) << 10) | (3 << 7) | 48;
+			cube.triangleColor[i] = ((14 + (int) (Math.random() * 64)) << 10) | (3 << 7) | 64;
 		}
 
 		cube.colorA = new int[cube.triangleCount];
@@ -85,7 +93,7 @@ public class Test3D extends TestApplet {
 		cube.applyLighting(64, 768, -50, -50, -30, true);
 
 		for (int i = 0; i < model.vertexCount; i++) {
-			model.vertexY[i] += (int) (Math.random() * 64);
+			model.vertexY[i] += (int) (Math.random() * 128);
 		}
 
 		// we need bounds before we center
@@ -95,7 +103,7 @@ public class Test3D extends TestApplet {
 		model.triangleColor = new int[model.triangleCount];
 
 		for (int i = 0; i < model.triangleCount; i++) {
-			model.triangleColor[i] = ((14 + (int) (Math.random() * 2)) << 10) | (3 << 7) | 48;
+			model.triangleColor[i] = ((14 + (int) (Math.random() * 2)) << 10) | (3 << 7) | 64;
 		}
 
 		model.colorA = new int[model.triangleCount];
@@ -167,7 +175,7 @@ public class Test3D extends TestApplet {
 			dragY = mouseY;
 		}
 
-		int speed = 16;
+		int speed = 64;
 		int backward = 0;
 		int left = 0;
 
@@ -189,7 +197,7 @@ public class Test3D extends TestApplet {
 	}
 
 	public void draw() {
-		Graphics3D.clear(0x303030);
+		Graphics3D.clear(0xBFEEFF);
 		Graphics3D.clearZBuffer();
 
 		int cameraPitchSine = Model.sin[cameraPitch];
@@ -203,9 +211,9 @@ public class Test3D extends TestApplet {
 		int flags = DRAW_MODEL | DRAW_DEBUG | DRAW_ORIGIN_DOT;
 
 		if ((flags & DRAW_MODEL) != 0) {
-			model.draw(0, 0, cameraPitchSine, cameraPitchCosine, cameraYawSine, cameraYawCosine, cameraX, cameraY, cameraZ, 1);
 			cube.draw(0, 0, cameraPitchSine, cameraPitchCosine, cameraYawSine, cameraYawCosine, cameraX, cameraY - 300, cameraZ, 1);
-			rotation += 4;
+			model.draw(0, 0, cameraPitchSine, cameraPitchCosine, cameraYawSine, cameraYawCosine, cameraX, cameraY, cameraZ, 1);
+			rotation += 16;
 			rotation &= 0x7FF;
 		}
 
@@ -243,6 +251,12 @@ public class Test3D extends TestApplet {
 			graphics.drawString("Fps: " + fps, 8, 80);
 			graphics.drawString("Ft: " + frameTime, 8, 96);
 		}
+
+		int w = 128 + (96 * Model.sin[rotation] >> 16);
+		int h = 128 + (96 * Model.cos[rotation] >> 16);
+		sprite.draw((width - w) / 2, (height - h) / 2, w, h);
+
+		Graphics2D.drawString("I AM A TEST MESSAGE OMFG!", 0, 0, 0xFF0000);
 	}
 
 }
