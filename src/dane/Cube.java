@@ -30,16 +30,8 @@ public class Cube extends Model {
 	 * @param size the size of the cube.
 	 */
 	public Cube(int size) {
-		this.triangleCount = 6 * 2; // 6 sides each with 2 triangles
-		this.vertexCount = 8; // 8 corners
-
-		this.triangleVertexA = new int[triangleCount];
-		this.triangleVertexB = new int[triangleCount];
-		this.triangleVertexC = new int[triangleCount];
-
-		this.vertexX = new int[vertexCount];
-		this.vertexY = new int[vertexCount];
-		this.vertexZ = new int[vertexCount];
+		this.setTriangleCount(6 * 2);// 6 sides each with 2 triangles
+		this.setVertexCount(8); // 8 corners
 
 		// a b
 		// |\|

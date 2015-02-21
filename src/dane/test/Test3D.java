@@ -48,8 +48,8 @@ public class Test3D extends TestApplet {
 	}
 
 	Sprite sprite;
-	Model cube;
 	Model model;
+	Model grid;
 	int rotation = 0;
 
 	int cameraPitch = 128;
@@ -62,7 +62,7 @@ public class Test3D extends TestApplet {
 		Graphics3D.texturedShading = false;
 
 		long time = System.nanoTime();
-		model = new Grid(13312 / 4, 104 / 4, 104 / 4);
+		grid = new Grid(13312 / 4, 104 / 4, 104 / 4);
 		time = System.nanoTime() - time;
 		System.out.println("Grid took " + String.format("%sms", time / 1_000_000.0) + " to create.");
 
@@ -72,48 +72,26 @@ public class Test3D extends TestApplet {
 			Logger.getLogger(Test3D.class.getName()).log(Level.SEVERE, null, ex);
 		}
 
-		cube = new Cube(64);
-
-		cube.calculateBoundaries();
-		cube.translate(-cube.maxBoundX / 2, -cube.minBoundY / 2, -cube.maxBoundZ / 2);
-
-		cube.triangleColor = new int[cube.triangleCount];
-
-		for (int i = 0; i < cube.triangleCount; i++) {
-			cube.triangleColor[i] = ((14 + (int) (Math.random() * 64)) << 10) | (3 << 7) | 64;
+		try {
+			model = ModelReader.get("ply").read(new File("cube.ply"));
+			model.setColor(64);
+			model.calculateBoundaries();
+			model.calculateNormals();
+			model.calculateLighting(64, 768, -50, -50, -30);
+		} catch (Exception e) {
+			logger.log(Level.WARNING, null, e);
 		}
 
-		cube.colorA = new int[cube.triangleCount];
-		cube.colorB = new int[cube.triangleCount];
-		cube.colorC = new int[cube.triangleCount];
-
-		cube.triangleType = new int[cube.triangleCount];
-		//Arrays.fill(cube.triangleType, 1);
-		cube.calculateNormals();
-		cube.applyLighting(64, 768, -50, -50, -30, true);
-
-		for (int i = 0; i < model.vertexCount; i++) {
-			model.vertexY[i] += (int) (Math.random() * 128);
+		for (int i = 0; i < grid.vertexCount; i++) {
+			grid.vertexY[i] += (int) (Math.random() * 128);
 		}
 
 		// we need bounds before we center
-		model.calculateBoundaries();
-		model.translate(-model.maxBoundX / 2, -model.minBoundY / 2, -model.maxBoundZ / 2);
-
-		model.triangleColor = new int[model.triangleCount];
-
-		for (int i = 0; i < model.triangleCount; i++) {
-			model.triangleColor[i] = ((14 + (int) (Math.random() * 2)) << 10) | (3 << 7) | 64;
-		}
-
-		model.colorA = new int[model.triangleCount];
-		model.colorB = new int[model.triangleCount];
-		model.colorC = new int[model.triangleCount];
-
-		model.triangleType = new int[model.triangleCount];
-		//Arrays.fill(model.triangleType, 1);
-		model.calculateNormals();
-		model.applyLighting(64, 768, -50, -50, -30, true);
+		grid.calculateBoundaries();
+		grid.translate(-grid.maxBoundX / 2, -grid.minBoundY / 2, -grid.maxBoundZ / 2);
+		grid.setColor((14 << 10) | (3 << 7) | 88);
+		grid.calculateNormals();
+		grid.calculateLighting(64, 768, -50, -50, -30);
 
 		System.gc();
 	}
@@ -175,7 +153,7 @@ public class Test3D extends TestApplet {
 			dragY = mouseY;
 		}
 
-		int speed = 64;
+		int speed = 32;
 		int backward = 0;
 		int left = 0;
 
@@ -211,8 +189,11 @@ public class Test3D extends TestApplet {
 		int flags = DRAW_MODEL | DRAW_DEBUG | DRAW_ORIGIN_DOT;
 
 		if ((flags & DRAW_MODEL) != 0) {
-			cube.draw(0, 0, cameraPitchSine, cameraPitchCosine, cameraYawSine, cameraYawCosine, cameraX, cameraY - 300, cameraZ, 1);
-			model.draw(0, 0, cameraPitchSine, cameraPitchCosine, cameraYawSine, cameraYawCosine, cameraX, cameraY, cameraZ, 1);
+			if (model != null) {
+				model.draw(0, 0, cameraPitchSine, cameraPitchCosine, cameraYawSine, cameraYawCosine, cameraX, cameraY - 300, cameraZ, 1);
+			}
+
+			grid.draw(0, 0, cameraPitchSine, cameraPitchCosine, cameraYawSine, cameraYawCosine, cameraX, cameraY, cameraZ, 1);
 			rotation += 16;
 			rotation &= 0x7FF;
 		}
@@ -254,10 +235,10 @@ public class Test3D extends TestApplet {
 			Graphics2D.drawString("Drawing model: " + Model.drawingModel, x, y, color, BitmapFont.SHADOW);
 			y += Graphics2D.font.height;
 
-			Graphics2D.drawString("Triangles: " + model.triangleCount, x, y, color, BitmapFont.SHADOW);
+			Graphics2D.drawString("Triangles: " + grid.triangleCount, x, y, color, BitmapFont.SHADOW);
 			y += Graphics2D.font.height;
 
-			Graphics2D.drawString("Vertices: " + model.vertexCount, x, y, color, BitmapFont.SHADOW);
+			Graphics2D.drawString("Vertices: " + grid.vertexCount, x, y, color, BitmapFont.SHADOW);
 			y += Graphics2D.font.height;
 
 			Graphics2D.drawString("Fps: " + fps, x, y, color, BitmapFont.SHADOW);
@@ -265,11 +246,13 @@ public class Test3D extends TestApplet {
 
 			Graphics2D.drawString("Ft: " + frameTime, x, y, color, BitmapFont.SHADOW);
 			y += Graphics2D.font.height;
-		}
 
-		int w = 128 + (96 * Model.sin[rotation] >> 16);
-		int h = 128 + (96 * Model.cos[rotation] >> 16);
-		sprite.draw((width - w) / 2, (height - h) / 2, w, h);
+			y += 32;
+
+			int w = 128 + (32 * Model.sin[rotation] >> 16);
+			int h = 128 + (32 * Model.cos[rotation] >> 16);
+			sprite.draw(0, y, w, h);
+		}
 
 	}
 

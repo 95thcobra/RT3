@@ -54,16 +54,8 @@ public class Grid extends Model {
 		this.columns = columns;
 		this.rows = rows;
 
-		this.triangleCount = (columns * rows) * 2;
-		this.vertexCount = (columns + 1) * (rows + 1);
-
-		this.triangleVertexA = new int[triangleCount];
-		this.triangleVertexB = new int[triangleCount];
-		this.triangleVertexC = new int[triangleCount];
-
-		this.vertexX = new int[vertexCount];
-		this.vertexY = new int[vertexCount];
-		this.vertexZ = new int[vertexCount];
+		this.setTriangleCount((columns * rows) * 2);
+		this.setVertexCount((columns + 1) * (rows + 1));
 
 		int i = 0;
 		for (int z = 0; z < rows + 1; z++) {

@@ -1,5 +1,7 @@
 package dane;
 
+import java.util.*;
+
 /*
  * Copyright (C) 2015 Dane.
  *
@@ -177,17 +179,17 @@ public class Model {
 	/**
 	 * The vertices x components.
 	 */
-	public int[] vertexX = new int[0];
+	public int[] vertexX;
 
 	/**
 	 * The vertices y components.
 	 */
-	public int[] vertexY = new int[0];
+	public int[] vertexY;
 
 	/**
 	 * The vertices z components.
 	 */
-	public int[] vertexZ = new int[0];
+	public int[] vertexZ;
 
 	/**
 	 * The triangle count.
@@ -197,37 +199,37 @@ public class Model {
 	/**
 	 * The triangles first vertex.
 	 */
-	public int[] triangleVertexA = new int[0];
+	public int[] triangleVertexA;
 
 	/**
 	 * The triangles second vertex.
 	 */
-	public int[] triangleVertexB = new int[0];
+	public int[] triangleVertexB;
 
 	/**
 	 * The triangles third vertex.
 	 */
-	public int[] triangleVertexC = new int[0];
+	public int[] triangleVertexC;
 
 	/**
 	 * The triangles color.
 	 */
-	public int[] triangleColor = new int[0];
+	public int[] triangleColor;
 
 	/**
 	 * A color component.
 	 */
-	public int[] colorA = new int[0];
+	public int[] colorA;
 
 	/**
 	 * A color component.
 	 */
-	public int[] colorB = new int[0];
+	public int[] colorB;
 
 	/**
 	 * A color component.
 	 */
-	public int[] colorC = new int[0];
+	public int[] colorC;
 
 	/**
 	 * The triangles type.
@@ -275,6 +277,42 @@ public class Model {
 	 * The copies of the original normals for each vertex.
 	 */
 	public Normal[] unmodifiedNormals;
+
+	/**
+	 * Sets all the triangle colors.
+	 *
+	 * @param hsl the hsl.
+	 */
+	public void setColor(int hsl) {
+		if (this.triangleColor == null) {
+			this.triangleColor = new int[this.triangleCount];
+		}
+		Arrays.fill(this.triangleColor, hsl);
+	}
+
+	/**
+	 * Initializes the vertex components and sets the count.
+	 *
+	 * @param count the count.
+	 */
+	public void setVertexCount(int count) {
+		this.vertexCount = count;
+		this.vertexX = new int[count];
+		this.vertexY = new int[count];
+		this.vertexZ = new int[count];
+	}
+
+	/**
+	 * Initializes the triangle components and sets the count.
+	 *
+	 * @param count the count.
+	 */
+	public void setTriangleCount(int count) {
+		this.triangleCount = count;
+		this.triangleVertexA = new int[count];
+		this.triangleVertexB = new int[count];
+		this.triangleVertexC = new int[count];
+	}
 
 	/**
 	 * Sets the vertex xyz values.
@@ -511,6 +549,12 @@ public class Model {
 	 * @param z the light source z.
 	 */
 	public final void calculateLighting(int minIntensity, int intensity, int x, int y, int z) {
+		if (colorA == null) {
+			colorA = new int[triangleCount];
+			colorB = new int[triangleCount];
+			colorC = new int[triangleCount];
+		}
+
 		for (int t = 0; t < triangleCount; t++) {
 			int a = triangleVertexA[t];
 			int b = triangleVertexB[t];
