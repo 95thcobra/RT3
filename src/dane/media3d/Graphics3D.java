@@ -140,7 +140,7 @@ public class Graphics3D {
 	 * Resets the zbuffer.
 	 */
 	public static final void clearZBuffer() {
-		Arrays.fill(zBuffer, Integer.MAX_VALUE);
+		Arrays.fill(zBuffer, Model.FAR_Z_1616);
 	}
 
 	/**

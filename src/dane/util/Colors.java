@@ -22,7 +22,42 @@ package dane.util;
  *
  * @author Dane
  */
-public final class ColorUtil {
+public class Colors {
+
+	public static final int WHITE = 0xFFFFFF;
+	public static final int BLACK = 0x000000;
+	public static final int RED = 0xFF0000;
+	public static final int GREEN = 0x00FF00;
+	public static final int BLUE = 0x0000FF;
+	public static final int YELLOW = 0xFFFF00;
+	public static final int PINK = 0xFF00FF;
+	public static final int CYAN = 0x00FFFF;
+	public static final int ORANGE = 0xFF7F00;
+	public static final int PURPLE = 0x7F00FF;
+	public static final int HOTPINK = 0xFF007F;
+	public static final int SKYBLUE = 0x87CEEB;
+
+	/**
+	 * Converts an INT24_RGB value to INT16_HSL.
+	 *
+	 * @param rgb the rgb.
+	 * @return the HSL.
+	 */
+	public static int rgbToHSL16(int rgb) {
+		return hsl24To16(rgbToHSL24(rgb));
+	}
+
+	/**
+	 * Converts an INT24_RGB value to INT16_HSL.
+	 *
+	 * @param r the red channel.
+	 * @param g the green channel.
+	 * @param b the blue channel.
+	 * @return the HSL.
+	 */
+	public static int rgbToHSL16(int r, int g, int b) {
+		return hsl24To16(rgbToHSL24((r << 16) | (g << 8) | b));
+	}
 
 	/**
 	 * Converts the red, green, and blue values to INT24_HSL.
@@ -32,8 +67,8 @@ public final class ColorUtil {
 	 * @param b the blue.
 	 * @return the hsl.
 	 */
-	public static final int rgbToHSL(int r, int g, int b) {
-		return rgbToHSL((r << 16) | (g << 8) | b);
+	public static int rgbToHSL24(int r, int g, int b) {
+		return Colors.rgbToHSL24((r << 16) | (g << 8) | b);
 	}
 
 	/**
@@ -42,11 +77,12 @@ public final class ColorUtil {
 	 * @param rgb the rgb.
 	 * @return the HSL.
 	 */
-	public static final int rgbToHSL(int rgb) {
-		double r = (double) ((rgb >> 16) & 0xFF) / 256.0;
-		double g = (double) ((rgb >> 8) & 0xFF) / 256.0;
-		double b = (double) (rgb & 0xFF) / 256.0;
-		return rgbToHSL(r, g, b);
+	public static int rgbToHSL24(int rgb) {
+		double r = (double) ((rgb >> 16) & 0xFF) / 255.0;
+		double g = (double) ((rgb >> 8) & 0xFF) / 255.0;
+		double b = (double) (rgb & 0xFF) / 255.0;
+
+		return Colors.rgbToHSL24(r, g, b);
 	}
 
 	/**
@@ -57,7 +93,7 @@ public final class ColorUtil {
 	 * @param b the blue channel.
 	 * @return the HSL.
 	 */
-	public static final int rgbToHSL(double r, double g, double b) {
+	public static int rgbToHSL24(double r, double g, double b) {
 		double min = Math.min(Math.min(r, g), b);
 		double max = Math.max(Math.max(r, g), b);
 
@@ -84,20 +120,16 @@ public final class ColorUtil {
 
 		hue /= 6.0;
 
-		hue *= 256.0;
-		saturation *= 256.0;
-		lightness *= 256.0;
-
-		return ((int) (hue) << 16) | ((int) (saturation) << 8) | ((int) lightness);
+		return ((int) (hue * 255.0) << 16) | ((int) (saturation * 255.0) << 8) | (int) (lightness * 255.0);
 	}
 
 	/**
 	 * Converts INT24_HSL to INT16_HSL. A format usually used with the palette generated in RuneTek 3 engines. (Lossy)
 	 *
 	 * @param hsl
-	 * @return
+	 * @return the hsl16.
 	 */
-	public static final int hsl24To16(int hsl) {
+	public static int hsl24To16(int hsl) {
 		int hue = (hsl >> 16) & 0xFF;
 		int saturation = (hsl >> 8) & 0xFF;
 		int lightness = hsl & 0xFF;
@@ -117,9 +149,10 @@ public final class ColorUtil {
 		if (lightness > 243) {
 			saturation /= 2;
 		}
-		return ((hue / 4) << 10) | ((saturation / 32) << 7) | lightness;
+
+		return ((hue / 4) << 10) | ((saturation / 32) << 7) | (lightness >> 1);
 	}
 
-	private ColorUtil() {
+	private Colors() {
 	}
 }

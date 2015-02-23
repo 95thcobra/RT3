@@ -1,12 +1,19 @@
-package dane.test;
+package dane;
 
+import dane.applet.AppletShell;
+import dane.input.Keyboard;
+import dane.input.Mouse;
+import dane.input.MouseButton;
 import dane.media2d.BitmapFont;
 import dane.media2d.Graphics2D;
+import dane.media2d.ImageProducer3D;
 import dane.media2d.Sprite;
 import dane.media3d.Graphics3D;
-import dane.media3d.model.ModelReader;
-import dane.scene.Model;
-import dane.scene.primitive.Grid;
+import dane.media3d.Model;
+import dane.media3d.primitive.Grid;
+import dane.media3d.reader.ModelReader;
+import dane.util.Colors;
+import java.awt.Graphics;
 import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.IOException;
@@ -39,9 +46,14 @@ import javax.swing.JFrame;
  *
  * @author Dane
  */
-public class Test3D extends TestApplet {
+public class Test3D extends AppletShell {
 
 	private static final Logger logger = Logger.getLogger(Test3D.class.getName());
+
+	@Override
+	public void shutdown() {
+		System.out.println("shutdown n junk");
+	}
 
 	private static class TestEntity {
 
@@ -75,6 +87,7 @@ public class Test3D extends TestApplet {
 		f.setVisible(true);
 	}
 
+	ImageProducer3D viewport;
 	Sprite sprite;
 	List<TestEntity> entities = new ArrayList<>();
 	Model grid;
@@ -82,15 +95,16 @@ public class Test3D extends TestApplet {
 
 	int cameraPitch = 128;
 	int cameraYaw;
-	int cameraX;
-	int cameraY = 512;
-	int cameraZ = 1024;
+	int cameraX = -1600;
+	int cameraY = 484;
+	int cameraZ = 384;
 
-	public boolean dragging = false;
-	public int dragX = -1;
-	public int dragY = -1;
+	@Override
+	public void initialize(int width, int height) {
+		viewport = new ImageProducer3D(width, height);
+		viewport.bind();
 
-	public Test3D() {
+		Graphics3D.createPalette(1.0);
 		Graphics3D.texturedShading = false;
 
 		long time = System.nanoTime();
@@ -104,7 +118,7 @@ public class Test3D extends TestApplet {
 			// we need bounds before we center
 			grid.calculateBoundaries();
 			grid.translate(-grid.maxBoundX / 2, -grid.minBoundY / 2, -grid.maxBoundZ / 2);
-			grid.setColor((14 << 10) | (3 << 7) | 88);
+			grid.setColor(Colors.rgbToHSL16(0x7CFC00));
 			grid.calculateNormals();
 			grid.calculateLighting(64, 768, -50, -50, -30);
 		}
@@ -128,7 +142,7 @@ public class Test3D extends TestApplet {
 			for (String s : new String[]{"cube.ply", "icosphere.ply", "cone.ply", "torus.ply", "torusknot.ply", "teapot.ply", "suzanne.ply"}) {
 				try {
 					Model m = ModelReader.get("ply").read(new File(s));
-					m.setColor(96);
+					m.setColor(Colors.rgbToHSL16(0xFFD700));
 					m.calculateBoundaries();
 					m.calculateNormals();
 					m.calculateLighting(64, 768, -50, -50, -30);
@@ -141,13 +155,38 @@ public class Test3D extends TestApplet {
 
 					x += 512;
 				} catch (Exception e) {
-					logger.log(Level.WARNING, null, e);
+					logger.log(Level.WARNING, "Error reading " + s, e);
 				}
 			}
 		}
 		time = System.nanoTime() - time;
 		System.out.println("Models took " + String.format("%sms", time / 1_000_000.0) + " to load.");
 
+		time = System.nanoTime();
+		{
+			try {
+				TestEntity e = new TestEntity();
+				e.x = -1600;
+				e.y = 200;
+
+				Model m = ModelReader.get("obj").read(new File("untitled.obj"));
+				m.calculateBoundaries();
+				m.calculateNormals();
+				m.calculateLighting(64, 768, -50, -50, -30);
+
+				e.model = m;
+
+				System.out.println(m.vertexCount + ", " + m.triangleCount);
+
+				entities.add(e);
+			} catch (Exception e) {
+				logger.log(Level.WARNING, null, e);
+			}
+		}
+		time = System.nanoTime() - time;
+		System.out.println("Obj model took " + String.format("%sms", time / 1_000_000.0) + " to load.");
+
+		super.initialize(width, height);
 		System.gc();
 	}
 
@@ -180,43 +219,41 @@ public class Test3D extends TestApplet {
 		cameraZ += offsetZ;
 	}
 
+	public boolean keyIsDown(int key) {
+		return false;
+	}
+
 	@Override
 	public void update() {
-		boolean wasDragging = dragging;
-		dragging = dragButton != 0;
+		Mouse mouse = this.getMouse();
+		Keyboard keyboard = this.getKeyboard();
 
-		if (!wasDragging && dragging) {
-			dragX = mouseX;
-			dragY = mouseY;
-		}
+		if (mouse.getActiveButton() == MouseButton.LEFT) {
+			int dx = mouse.getDragDeltaX() * 2;
+			int dy = mouse.getDragDeltaY() * 2;
 
-		if (dragging) {
-			int dx = mouseX - dragX;
-			int dy = mouseY - dragY;
+			if (dx != 0 || dy != 0) {
+				cameraYaw -= dx;
+				cameraYaw &= 0x7FF;
 
-			cameraYaw -= dx;
-			cameraYaw &= 0x7FF;
-
-			cameraPitch += dy;
-			cameraPitch &= 0x7FF;
-
-			dragX = mouseX;
-			dragY = mouseY;
+				cameraPitch += dy;
+				cameraPitch &= 0x7FF;
+			}
 		}
 
 		int speed = 32;
 		int backward = 0;
 		int left = 0;
 
-		if (keyIsDown(KeyEvent.VK_W)) {
+		if (keyboard.isKeyDown(KeyEvent.VK_W)) {
 			backward = -speed;
-		} else if (keyIsDown(KeyEvent.VK_S)) {
+		} else if (keyboard.isKeyDown(KeyEvent.VK_S)) {
 			backward = speed;
 		}
 
-		if (keyIsDown(KeyEvent.VK_A)) {
+		if (keyboard.isKeyDown(KeyEvent.VK_A)) {
 			left = speed;
-		} else if (keyIsDown(KeyEvent.VK_D)) {
+		} else if (keyboard.isKeyDown(KeyEvent.VK_D)) {
 			left = -speed;
 		}
 
@@ -225,10 +262,11 @@ public class Test3D extends TestApplet {
 		}
 	}
 
-	public void draw() {
+	@Override
+	public void draw(Graphics g, int width, int height) {
 		Model.frameTriangleCount = 0;
 
-		Graphics2D.clear(0xBFEEFF);
+		Graphics2D.clear(Colors.SKYBLUE);
 		Graphics3D.clearZBuffer();
 
 		int cameraPitchSine = Model.sin[cameraPitch];
@@ -290,12 +328,15 @@ public class Test3D extends TestApplet {
 			Graphics2D.drawString("Triangles: " + Model.frameTriangleCount, x, y, color, BitmapFont.SHADOW);
 			y += Graphics2D.font.height;
 
-			Graphics2D.drawString("Fps: " + fps, x, y, color, BitmapFont.SHADOW);
+			Graphics2D.drawString("Fps: " + this.getFPS(), x, y, color, BitmapFont.SHADOW);
 			y += Graphics2D.font.height;
 
-			Graphics2D.drawString("Ft: " + (Math.round(frameTime * 10000.0) / 10000.0) + "ms", x, y, color, BitmapFont.SHADOW);
+			Graphics2D.drawString("Ft: " + (Math.round(this.getFrameTime() * 10000.0) / 10000.0) + "ms", x, y, color, BitmapFont.SHADOW);
 			y += Graphics2D.font.height;
 
+			Mouse mouse = this.getMouse();
+			Graphics2D.drawString("Mouse: " + mouse.getActiveButton() + ", " + mouse.getX() + ", " + mouse.getY(), x, y, color, BitmapFont.SHADOW);
+			y += Graphics2D.font.height;
 			y += 32;
 
 			int w = 128 + (32 * Model.sin[rotation] >> 16);
@@ -303,6 +344,7 @@ public class Test3D extends TestApplet {
 			sprite.draw(0, y, w, h);
 		}
 
+		viewport.draw(g, 0, 0);
 	}
 
 }

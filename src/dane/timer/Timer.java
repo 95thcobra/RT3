@@ -16,13 +16,14 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301  USA
  */
-package dane.scene;
+package dane.timer;
 
 /**
  *
  * @author Dane
  */
-public class Normal {
+public abstract class Timer {
 
-	public int x, y, z, magnitude;
+	public abstract int getCycleCount(int deltime, int mindel);
+
 }

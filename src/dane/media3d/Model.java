@@ -1,8 +1,7 @@
-package dane.scene;
+package dane.media3d;
 
 import dane.media2d.Graphics2D;
-import dane.media3d.Graphics3D;
-import java.util.*;
+import java.util.Arrays;
 
 /*
  * Copyright (C) 2015 Dane.
@@ -51,7 +50,9 @@ public class Model {
 	/**
 	 * The farthest a model can be from the camera before it stops being drawn.
 	 */
-	public static final int FAR_Z = 0x7FFFF;
+	public static final int FAR_Z = 0x7FFF;
+
+	public static final int FAR_Z_1616 = FAR_Z << 16;
 
 	/**
 	 * The max triangle constant.
@@ -286,7 +287,24 @@ public class Model {
 	public Normal[] unmodifiedNormals;
 
 	/**
-	 * Sets all the triangle colors.
+	 * Constructs a new empty model.
+	 */
+	public Model() {
+	}
+
+	/**
+	 * Sets the color of all the triangles.
+	 *
+	 * @param hue the hue. (0-63)
+	 * @param saturation the saturation. (0-7)
+	 * @param lightness the lightness. (0-127) (0 = black) (127 = white)
+	 */
+	public void setColor(int hue, int saturation, int lightness) {
+		setColor((hue << 10) | (saturation << 7) | lightness);
+	}
+
+	/**
+	 * Sets the color of all the triangles. (<b>Note:</b> uses {@code triangleCount})
 	 *
 	 * @param hsl the hsl.
 	 */

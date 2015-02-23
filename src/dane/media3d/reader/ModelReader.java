@@ -16,15 +16,17 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301  USA
  */
-package dane.media3d.model;
+package dane.media3d.reader;
 
-import dane.scene.Model;
+import dane.media3d.Model;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * An abstract superclass for parsing and decoding of models.
@@ -32,6 +34,8 @@ import java.util.Map;
  * @author Dane
  */
 public abstract class ModelReader {
+
+	private static final Logger logger = Logger.getLogger(ModelReader.class.getName());
 
 	/**
 	 * The map for registered readers.
@@ -41,8 +45,9 @@ public abstract class ModelReader {
 	static {
 		try {
 			register("ply", PLYModelReader.class);
-		} catch (Exception e) {
-			e.printStackTrace();
+			register("obj", OBJModelReader.class);
+		} catch (InstantiationException | IllegalAccessException e) {
+			logger.log(Level.WARNING, "Failed to register a default model reader", e);
 		}
 	}
 

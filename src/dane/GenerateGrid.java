@@ -16,7 +16,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301  USA
  */
-package dane.test;
+package dane;
 
 import dane.media2d.Graphics2D;
 import dane.media2d.Sprite;

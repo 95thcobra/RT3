@@ -19,7 +19,7 @@ package dane.media2d;
  * MA 02110-1301  USA
  */
 import dane.media3d.Graphics3D;
-import dane.scene.Model;
+import dane.media3d.Model;
 import java.awt.Font;
 import java.util.Arrays;
 
