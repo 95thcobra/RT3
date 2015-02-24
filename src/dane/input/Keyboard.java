@@ -22,6 +22,7 @@ import java.awt.event.KeyEvent;
 import java.util.Arrays;
 
 /**
+ * A class for receiving and handing key events.
  *
  * @author Dane
  */
@@ -37,16 +38,31 @@ public class Keyboard {
 		Arrays.fill(this.pressedKeys, false);
 	}
 
+	/**
+	 * Deactivates all held key states.
+	 */
 	public void releaseAllKeys() {
 		Arrays.fill(this.heldKeys, false);
 	}
 
+	/**
+	 * Returns true whether the provided key code was pressed within the last frame.
+	 *
+	 * @param key the key.
+	 * @return true if the key was pressed in the last frame.
+	 */
 	public boolean wasKeyPressed(int key) {
-		return pressedKeys[key];
+		return this.pressedKeys[key];
 	}
 
+	/**
+	 * Returns true whether the provided key code is currently being held down.
+	 *
+	 * @param key the key.
+	 * @return true if the key is currently held down.
+	 */
 	public boolean isKeyDown(int key) {
-		return heldKeys[key];
+		return this.heldKeys[key];
 	}
 
 	/**
@@ -55,24 +71,25 @@ public class Keyboard {
 	 * @param e the key event.
 	 */
 	public void consumeEvent(KeyEvent e) {
-		int code = e.getKeyCode();
+		int i = e.getKeyCode();
+		char c = e.getKeyChar();
 
-		if (code < 0 || code >= Byte.MAX_VALUE) {
+		if (i < 0 || i >= Byte.MAX_VALUE) {
 			return;
 		}
 
 		switch (e.getID()) {
 			case KeyEvent.KEY_PRESSED: {
 				// only add as a newly pressed key before the 'held' state.
-				if (!heldKeys[code]) {
-					pressedKeys[code] = true;
+				if (!this.heldKeys[i]) {
+					this.pressedKeys[i] = true;
 				}
 
-				heldKeys[code] = true;
+				this.heldKeys[i] = true;
 				break;
 			}
 			case KeyEvent.KEY_RELEASED: {
-				heldKeys[code] = false;
+				this.heldKeys[i] = false;
 				break;
 			}
 		}

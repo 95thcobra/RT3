@@ -165,19 +165,15 @@ public class Test3D extends AppletShell {
 		time = System.nanoTime();
 		{
 			try {
-				TestEntity e = new TestEntity();
-				e.x = -1600;
-				e.y = 200;
-
 				Model m = ModelReader.get("obj").read(new File("untitled.obj"));
 				m.calculateBoundaries();
 				m.calculateNormals();
 				m.calculateLighting(64, 768, -50, -50, -30);
 
+				TestEntity e = new TestEntity();
+				e.x = -1600;
+				e.y = 200;
 				e.model = m;
-
-				System.out.println(m.vertexCount + ", " + m.triangleCount);
-
 				entities.add(e);
 			} catch (Exception e) {
 				logger.log(Level.WARNING, null, e);
@@ -267,7 +263,7 @@ public class Test3D extends AppletShell {
 		Model.frameTriangleCount = 0;
 
 		Graphics2D.clear(Colors.SKYBLUE);
-		Graphics3D.clearZBuffer();
+		Graphics3D.clearDepthBuffer();
 
 		int cameraPitchSine = Model.sin[cameraPitch];
 		int cameraPitchCosine = Model.cos[cameraPitch];

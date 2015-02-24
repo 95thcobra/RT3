@@ -1,9 +1,11 @@
 package dane.media2d;
 
-import java.awt.image.*;
-import java.io.*;
-import java.util.logging.*;
-import javax.imageio.*;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.imageio.ImageIO;
 
 /*
  * Copyright (C) 2015 Dane.
@@ -41,9 +43,9 @@ public class Sprite {
 	public static final Sprite load(File f) throws IOException {
 		BufferedImage image = ImageIO.read(f);
 		Sprite b = new Sprite(image.getWidth(), image.getHeight());
-		image.getRGB(0, 0, b.width, b.height, b.data, 0, b.width);
-		for (int i = 0; i < b.data.length; i++) {
-			b.data[i] &= ~(0xFF000000);
+		image.getRGB(0, 0, b.width, b.height, b.pixels, 0, b.width);
+		for (int i = 0; i < b.pixels.length; i++) {
+			b.pixels[i] &= ~(0xFF000000);
 		}
 		return b;
 	}
@@ -51,17 +53,17 @@ public class Sprite {
 	/**
 	 * The information for each pixel.
 	 */
-	public int[] data;
+	protected int[] pixels;
 
 	/**
 	 * The width.
 	 */
-	public int width;
+	protected int width;
 
 	/**
 	 * The height.
 	 */
-	public int height;
+	protected int height;
 
 	/**
 	 * Constructs a blank sprite.
@@ -70,7 +72,7 @@ public class Sprite {
 	 * @param height the height.
 	 */
 	public Sprite(int width, int height) {
-		this.data = new int[width * height];
+		this.pixels = new int[width * height];
 		this.width = width;
 		this.height = height;
 	}
@@ -81,7 +83,7 @@ public class Sprite {
 	 * @see Graphics2D
 	 */
 	public void bind() {
-		Graphics2D.setTarget(this.data, this.width, this.height);
+		Graphics2D.setTarget(this.pixels, this.width, this.height);
 	}
 
 	/**
@@ -91,11 +93,38 @@ public class Sprite {
 	 * @param b the rgb B.
 	 */
 	public void replaceRGB(int a, int b) {
-		for (int i = 0; i < this.data.length; i++) {
-			if (this.data[i] == a) {
-				this.data[i] = b;
+		for (int i = 0; i < this.pixels.length; i++) {
+			if (this.pixels[i] == a) {
+				this.pixels[i] = b;
 			}
 		}
+	}
+
+	/**
+	 * Returns the data of the sprite.
+	 *
+	 * @return the data.
+	 */
+	public int[] getPixels() {
+		return this.pixels;
+	}
+
+	/**
+	 * Returns the width of the image.
+	 *
+	 * @return the width.
+	 */
+	public int getWidth() {
+		return this.width;
+	}
+
+	/**
+	 * Returns the height of the image.
+	 *
+	 * @return the height.
+	 */
+	public int getHeight() {
+		return this.height;
 	}
 
 	/**
@@ -105,7 +134,7 @@ public class Sprite {
 	 * @param y the draw y.
 	 */
 	public void drawOpaque(int x, int y) {
-		Graphics2D.drawPixels(x, y, this.width, this.height, this.data);
+		Graphics2D.drawPixels(x, y, this.width, this.height, this.pixels);
 	}
 
 	/**
@@ -115,7 +144,7 @@ public class Sprite {
 	 * @param y the draw y.
 	 */
 	public void draw(int x, int y) {
-		Graphics2D.drawPixels(x, y, this.width, this.height, this.data);
+		Graphics2D.drawPixels(x, y, this.width, this.height, this.pixels);
 	}
 
 	/**
@@ -126,7 +155,7 @@ public class Sprite {
 	 * @param alpha the alpha.
 	 */
 	public void draw(int x, int y, int alpha) {
-		Graphics2D.drawPixels(x, y, this.width, this.height, this.data, alpha);
+		Graphics2D.drawPixels(x, y, this.width, this.height, this.pixels, alpha);
 	}
 
 	/**
@@ -172,7 +201,7 @@ public class Sprite {
 				int srcX = offX + cos * start;
 				int srcY = offY - sin * start;
 				for (x = 0; x < rowWidth[y]; x++) {
-					Graphics2D.target[off++] = this.data[(srcX >> 16) + (srcY >> 16) * this.width];
+					Graphics2D.target[off++] = this.pixels[(srcX >> 16) + (srcY >> 16) * this.width];
 					srcX += cos;
 					srcY -= sin;
 				}
@@ -213,7 +242,7 @@ public class Sprite {
 				int dstY = offY - sin;
 
 				for (x = 0; x < w; x++) {
-					int rgb = data[(dstX >> 16) + (dstY >> 16) * width];
+					int rgb = pixels[(dstX >> 16) + (dstY >> 16) * width];
 
 					if (rgb != 0) {
 						Graphics2D.target[off++] = rgb;
@@ -241,10 +270,10 @@ public class Sprite {
 		int off = 0;
 		for (int y = 0; y < height; y++) {
 			for (int x = width - 1; x >= 0; x--) {
-				flipped[off++] = data[x + (y * width)];
+				flipped[off++] = pixels[x + (y * width)];
 			}
 		}
-		data = flipped;
+		pixels = flipped;
 	}
 
 	/**
@@ -255,10 +284,10 @@ public class Sprite {
 		int off = 0;
 		for (int y = height - 1; y >= 0; y--) {
 			for (int x = 0; x < width; x++) {
-				flipped[off++] = data[x + (y * width)];
+				flipped[off++] = pixels[x + (y * width)];
 			}
 		}
-		data = flipped;
+		pixels = flipped;
 	}
 
 }

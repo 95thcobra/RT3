@@ -134,22 +134,6 @@ public class Colors {
 		int saturation = (hsl >> 8) & 0xFF;
 		int lightness = hsl & 0xFF;
 
-		if (lightness > 179) {
-			saturation /= 2;
-		}
-
-		if (lightness > 192) {
-			saturation /= 2;
-		}
-
-		if (lightness > 217) {
-			saturation /= 2;
-		}
-
-		if (lightness > 243) {
-			saturation /= 2;
-		}
-
 		return ((hue / 4) << 10) | ((saturation / 32) << 7) | (lightness >> 1);
 	}
 

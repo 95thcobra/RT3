@@ -740,7 +740,7 @@ public class Graphics2D {
 		}
 
 		// local reference
-		int[] pixels = s.data;
+		int[] pixels = s.pixels;
 
 		// we'll be coming back to this.
 		int startU = u;

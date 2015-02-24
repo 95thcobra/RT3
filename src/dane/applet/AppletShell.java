@@ -186,6 +186,8 @@ public abstract class AppletShell extends JApplet implements Runnable {
 			long time = System.nanoTime();
 
 			this.draw(imageGraphics, width, height);
+
+			// draw our frame buffer to the applet
 			appletGraphics.drawImage(this.image, 0, 0, width, height, null);
 
 			if (this.frameTime == 0) {

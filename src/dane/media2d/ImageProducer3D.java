@@ -37,7 +37,7 @@ public class ImageProducer3D extends ImageProducer {
 	/**
 	 * The depth buffer.
 	 */
-	private int[] zbuffer;
+	private int[] depthBuffer;
 
 	/**
 	 * Constructs a new empty 3d image producer.
@@ -53,8 +53,8 @@ public class ImageProducer3D extends ImageProducer {
 		return this.offsets;
 	}
 
-	public int[] getZBuffer() {
-		return this.zbuffer;
+	public int[] getDepthBuffer() {
+		return this.depthBuffer;
 	}
 
 	/**
@@ -73,9 +73,12 @@ public class ImageProducer3D extends ImageProducer {
 		}
 
 		// and our zbuffer initialized
-		if (this.zbuffer == null) {
-			this.zbuffer = Graphics3D.setZBuffer();
+		if (this.depthBuffer == null) {
+			this.depthBuffer = Graphics3D.setDepthBuffer();
 		}
+
+		Graphics3D.offsets = this.offsets;
+		Graphics3D.depthBuffer = this.depthBuffer;
 	}
 
 }

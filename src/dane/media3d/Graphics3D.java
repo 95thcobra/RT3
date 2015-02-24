@@ -85,7 +85,7 @@ public class Graphics3D {
 	/**
 	 * Stores an array of zbuffer values.
 	 */
-	public static int[] zBuffer;
+	public static int[] depthBuffer;
 
 	static {
 		for (int i = 1; i < 512; i++) {
@@ -139,8 +139,8 @@ public class Graphics3D {
 	/**
 	 * Resets the zbuffer.
 	 */
-	public static final void clearZBuffer() {
-		Arrays.fill(zBuffer, Model.FAR_Z_1616);
+	public static final void clearDepthBuffer() {
+		Arrays.fill(depthBuffer, Model.FAR_Z_1616);
 	}
 
 	/**
@@ -148,8 +148,8 @@ public class Graphics3D {
 	 *
 	 * @return the int[] zbuffer.
 	 */
-	public static final int[] setZBuffer() {
-		return setZBuffer(Graphics2D.targetWidth, Graphics2D.targetHeight);
+	public static final int[] setDepthBuffer() {
+		return setDepthBuffer(Graphics2D.targetWidth, Graphics2D.targetHeight);
 	}
 
 	/**
@@ -159,10 +159,10 @@ public class Graphics3D {
 	 * @param h the height.
 	 * @return the int[] zbuffer.
 	 */
-	public static final int[] setZBuffer(int w, int h) {
-		zBuffer = new int[w * h];
-		clearZBuffer();
-		return zBuffer;
+	public static final int[] setDepthBuffer(int w, int h) {
+		depthBuffer = new int[w * h];
+		clearDepthBuffer();
+		return depthBuffer;
 	}
 
 	/**
@@ -944,8 +944,8 @@ public class Graphics3D {
 
 		if (alpha == 0) {
 			while (--length >= 0) {
-				if (zA <= zBuffer[off]) {
-					zBuffer[off] = zA;
+				if (zA <= depthBuffer[off]) {
+					depthBuffer[off] = zA;
 					dst[off++] = rgb;
 				} else {
 					off++;
@@ -960,8 +960,8 @@ public class Graphics3D {
 			rgb = (((rgb & 0xFF00FF) * alphaB >> 8 & 0xFF00FF) + ((rgb & 0xFF00) * alphaB >> 8 & 0xFF00));
 
 			while (--length >= 0) {
-				if (zA <= zBuffer[off]) {
-					zBuffer[off] = zA;
+				if (zA <= depthBuffer[off]) {
+					depthBuffer[off] = zA;
 					dst[off] = (rgb + ((dst[off] & 0xFF00FF) * alphaA >> 8 & 0xFF00FF) + ((dst[off] & 0xFF00) * alphaA >> 8 & 0xFF00));
 					off++;
 				} else {
@@ -2325,9 +2325,9 @@ public class Graphics3D {
 					zA += zSlope;
 
 					for (int i = 0; i < 4; i++) {
-						if (zA <= zBuffer[off]) {
+						if (zA <= depthBuffer[off]) {
 							dst[off] = rgb;
-							zBuffer[off] = zA;
+							depthBuffer[off] = zA;
 						}
 						off++;
 					}
@@ -2339,9 +2339,9 @@ public class Graphics3D {
 					rgb = palette[colorA >> 8];
 
 					do {
-						if (zA <= zBuffer[off]) {
+						if (zA <= depthBuffer[off]) {
 							dst[off] = rgb;
-							zBuffer[off] = zA;
+							depthBuffer[off] = zA;
 						}
 						zA += zSlope;
 						off++;
@@ -2405,8 +2405,8 @@ public class Graphics3D {
 
 			if (alpha == 0) {
 				do {
-					if (zA <= zBuffer[off]) {
-						zBuffer[off] = zA;
+					if (zA <= depthBuffer[off]) {
+						depthBuffer[off] = zA;
 						dst[off] = palette[colorA >> 8];
 					}
 
