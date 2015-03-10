@@ -1,6 +1,7 @@
-package dane.media3d;
+package dane.media;
 
-import dane.media2d.Graphics2D;
+import dane.image.Graphics3D;
+import dane.image.Graphics2D;
 import java.util.Arrays;
 
 /*
@@ -374,7 +375,7 @@ public class Model {
 	/**
 	 * Inverts the triangles.
 	 */
-	public void invert() {
+	public void flipBackwards() {
 		for (int v = 0; v < vertexCount; v++) {
 			vertexZ[v] = -vertexZ[v];
 		}

@@ -1,4 +1,4 @@
-package dane.media2d;
+package dane.image;
 
 /*
  * Copyright (C) 2015 Dane.
@@ -18,8 +18,7 @@ package dane.media2d;
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301  USA
  */
-import dane.media3d.Graphics3D;
-import dane.media3d.Model;
+import dane.media.Model;
 import java.awt.Font;
 import java.util.Arrays;
 
@@ -238,12 +237,12 @@ public class Graphics2D {
 		int radius2 = radius * radius; // used to avoid Math.sqrt
 
 		for (int xA = x - radius; xA < x + radius; xA++) {
-			if (xA < left || xA > right) {
+			if (xA < left || xA >= right) {
 				continue;
 			}
 
 			for (int yA = y - radius; yA < y + radius; yA++) {
-				if (yA < top || yA > bottom) {
+				if (yA < top || yA >= bottom) {
 					continue;
 				}
 

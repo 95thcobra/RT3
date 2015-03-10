@@ -19,7 +19,9 @@
 package dane.input;
 
 import java.awt.event.KeyEvent;
+import java.util.ArrayDeque;
 import java.util.Arrays;
+import java.util.Queue;
 
 /**
  * A class for receiving and handing key events.
@@ -30,6 +32,7 @@ public class Keyboard {
 
 	private final boolean[] pressedKeys = new boolean[256];
 	private final boolean[] heldKeys = new boolean[256];
+	private final Queue<Character> typedDeque = new ArrayDeque<>();
 
 	/**
 	 * Clears the pressed keys for the previous frame.
@@ -43,6 +46,21 @@ public class Keyboard {
 	 */
 	public void releaseAllKeys() {
 		Arrays.fill(this.heldKeys, false);
+	}
+
+	/**
+	 * Polls a character from the typed queue.
+	 *
+	 * @return a character.
+	 */
+	public char poll() {
+		Character c = typedDeque.poll();
+
+		if (c != null) {
+			return c;
+		}
+
+		return Character.MIN_VALUE;
 	}
 
 	/**
@@ -86,6 +104,13 @@ public class Keyboard {
 				}
 
 				this.heldKeys[i] = true;
+
+				if (c >= ' ' && c <= '~'
+					|| c == KeyEvent.VK_ENTER
+					|| c == KeyEvent.VK_BACK_SPACE
+					|| (c >= KeyEvent.VK_F1 && c <= KeyEvent.VK_F12)) {
+					typedDeque.add(c);
+				}
 				break;
 			}
 			case KeyEvent.KEY_RELEASED: {

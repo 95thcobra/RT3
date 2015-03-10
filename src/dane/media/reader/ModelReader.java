@@ -16,9 +16,9 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301  USA
  */
-package dane.media3d.reader;
+package dane.media.reader;
 
-import dane.media3d.Model;
+import dane.media.Model;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;

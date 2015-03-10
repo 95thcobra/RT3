@@ -21,11 +21,14 @@ package dane.applet;
 import dane.input.Keyboard;
 import dane.input.Mouse;
 import dane.timer.NanoTimer;
-import java.awt.AWTEvent;
 import java.awt.Graphics;
 import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
 import java.awt.image.BufferedImage;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -35,67 +38,61 @@ import javax.swing.JApplet;
  *
  * @author Dane
  */
-public abstract class AppletShell extends JApplet implements Runnable {
+public abstract class AppletShell extends JApplet implements Runnable, MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
 
 	private static final Logger logger = Logger.getLogger(AppletShell.class.getName());
 
-	private final Mouse mouse = new Mouse();
+	private final Mouse mouse = new Mouse(this);
 	private final Keyboard keyboard = new Keyboard();
+	private AppletFrame frame;
 
 	private BufferedImage image;
+	private int cycle;
 	private int cycleInterval;
 	private int state;
 	private int fps;
 	private double frameTime;
+	private int scale;
 
-	public void initialize(int width, int height) {
-		this.setSize(width, height);
+	/**
+	 * Sets the size of the applet and initializes the frame buffer and thread.
+	 *
+	 * @param width the width.
+	 * @param height the height.
+	 * @param wrapInFrame whether to wrap in a frame or not.
+	 */
+	public void initialize(int width, int height, boolean wrapInFrame) {
+		this.initialize(width, height, 1, wrapInFrame);
+	}
+
+	/**
+	 * Sets the size of the applet and initializes the frame buffer and thread.
+	 *
+	 * @param width the width.
+	 * @param height the height.
+	 * @param scale the pixel scale. (<b>Warning: Does not work properly with 3D drawing</b>)
+	 * @param wrapInFrame whether to wrap in a frame or not.
+	 */
+	public void initialize(int width, int height, int scale, boolean wrapInFrame) {
+		this.setSize(width * scale, height * scale);
 		this.setPreferredSize(this.getSize());
+		this.scale = scale;
 		this.image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
-		this.enableEvents(AWTEvent.MOUSE_EVENT_MASK | AWTEvent.MOUSE_MOTION_EVENT_MASK | AWTEvent.MOUSE_WHEEL_EVENT_MASK | AWTEvent.KEY_EVENT_MASK);
-		this.enableInputMethods(true);
+
+		if (wrapInFrame) {
+			this.frame = new AppletFrame(this);
+		}
+
 		this.startThread(this, Thread.MIN_PRIORITY);
 	}
 
-	@Override
-	public void addNotify() {
-		super.addNotify();
-		this.requestFocus();
-	}
-
 	/**
-	 * Starts a new thread for the provided runnable with the given priority.
+	 * Gets the amount of times the game has updated.
 	 *
-	 * @param runnable the runnable.
-	 * @param priority the thread priority.
+	 * @return the update count.
 	 */
-	public void startThread(Runnable runnable, int priority) {
-		Thread t = new Thread(runnable);
-		t.setPriority(priority);
-		t.start();
-	}
-
-	/**
-	 * Causes the thread to continuously attempt to get the graphics context of this applet before continuing.
-	 * (<b>Warning:</b> loops infinitely until g != null)
-	 *
-	 * @return the graphics.
-	 */
-	private final Graphics grabGraphics() {
-		Graphics g = this.getGraphics();
-
-		while (g == null) {
-			g = this.getGraphics();
-
-			// gives the thread back to swing/awt
-			try {
-				Thread.sleep(10);
-			} catch (Exception e) {
-				// ignored
-			}
-		}
-
-		return g;
+	public int getCycle() {
+		return this.cycle;
 	}
 
 	/**
@@ -126,12 +123,24 @@ public abstract class AppletShell extends JApplet implements Runnable {
 		return this.frameTime;
 	}
 
+	public AppletFrame getFrame() {
+		return this.frame;
+	}
+
 	public Mouse getMouse() {
 		return this.mouse;
 	}
 
 	public Keyboard getKeyboard() {
 		return this.keyboard;
+	}
+
+	public BufferedImage getImage() {
+		return this.image;
+	}
+
+	public int getScale() {
+		return this.scale;
 	}
 
 	@Override
@@ -152,9 +161,24 @@ public abstract class AppletShell extends JApplet implements Runnable {
 	}
 
 	@Override
+	public void addNotify() {
+		super.addNotify();
+		this.requestFocus();
+	}
+
+	@Override
 	public void run() {
+		logger.log(Level.INFO, "Registering listeners");
+
+		this.addMouseListener(this);
+		this.addMouseMotionListener(this);
+		this.addMouseWheelListener(this);
+		this.addKeyListener(this);
+
 		Graphics appletGraphics = this.grabGraphics();
 		Graphics imageGraphics = this.image.getGraphics();
+
+		this.startup();
 
 		NanoTimer timer = new NanoTimer();
 
@@ -176,7 +200,11 @@ public abstract class AppletShell extends JApplet implements Runnable {
 			int cycles = timer.getCycleCount(20, 1);
 
 			for (int i = 0; i < cycles; i++) {
-				this.update();
+				// allows users to return false and pause cycle from increasing.
+				// can be used for lots of things.
+				if (this.update()) {
+					this.cycle++;
+				}
 
 				// reset frame based variables
 				this.mouse.reset();
@@ -213,30 +241,6 @@ public abstract class AppletShell extends JApplet implements Runnable {
 		this.forceShutdown();
 	}
 
-	@Override
-	protected void processMouseEvent(MouseEvent e) {
-		super.processMouseEvent(e);
-		this.mouse.consumeEvent(e);
-	}
-
-	@Override
-	protected void processMouseWheelEvent(MouseWheelEvent e) {
-		super.processMouseWheelEvent(e);
-		this.mouse.consumeEvent(e);
-	}
-
-	@Override
-	protected void processMouseMotionEvent(MouseEvent e) {
-		super.processMouseMotionEvent(e);
-		this.mouse.consumeEvent(e);
-	}
-
-	@Override
-	protected void processKeyEvent(KeyEvent e) {
-		super.processKeyEvent(e);
-		this.keyboard.consumeEvent(e);
-	}
-
 	/**
 	 * Causes a grace period of 5 seconds to initiate for the applet to close, before it is delicately killed with
 	 * kindness and love.
@@ -254,6 +258,16 @@ public abstract class AppletShell extends JApplet implements Runnable {
 			logger.log(Level.WARNING, "5 seconds expired, forcing kill.");
 			forceShutdown();
 		}
+	}
+
+	/**
+	 * Called when an event causes the frame to call its dispose method. Returning true will cause the frame to be
+	 * disposed and the applet destroyed.
+	 *
+	 * @return whether or not to shut down.
+	 */
+	public boolean canShutdown() {
+		return true;
 	}
 
 	public void forceShutdown() {
@@ -275,10 +289,102 @@ public abstract class AppletShell extends JApplet implements Runnable {
 		}
 	}
 
-	public abstract void update();
+	public abstract void startup();
+
+	public abstract boolean update();
 
 	public abstract void draw(Graphics g, int width, int height);
 
 	public abstract void shutdown();
+
+	/**
+	 * Starts a new thread for the provided runnable with the given priority.
+	 *
+	 * @param runnable the runnable.
+	 * @param priority the thread priority.
+	 */
+	public void startThread(Runnable runnable, int priority) {
+		Thread t = new Thread(runnable);
+		t.setPriority(priority);
+		t.start();
+	}
+
+	/**
+	 * Causes the thread to continuously attempt to get the graphics context of this applet before continuing.
+	 * (<b>Warning:</b> loops infinitely until g != null)
+	 *
+	 * @return the graphics.
+	 */
+	private final Graphics grabGraphics() {
+		Graphics g = this.getGraphics();
+
+		while (g == null) {
+			g = this.getGraphics();
+
+			// gives the thread back to swing/awt
+			try {
+				Thread.sleep(10);
+			} catch (Exception e) {
+				// ignored
+			}
+		}
+
+		return g;
+	}
+
+	@Override
+	public void mouseClicked(MouseEvent e) {
+		this.mouse.consumeEvent(e);
+	}
+
+	@Override
+	public void mousePressed(MouseEvent e) {
+		this.mouse.consumeEvent(e);
+	}
+
+	@Override
+	public void mouseReleased(MouseEvent e) {
+		this.mouse.consumeEvent(e);
+	}
+
+	@Override
+	public void mouseEntered(MouseEvent e) {
+		this.mouse.consumeEvent(e);
+	}
+
+	@Override
+	public void mouseExited(MouseEvent e) {
+		this.mouse.consumeEvent(e);
+	}
+
+	@Override
+	public void mouseDragged(MouseEvent e) {
+		this.mouse.consumeEvent(e);
+	}
+
+	@Override
+	public void mouseMoved(MouseEvent e) {
+		this.mouse.consumeEvent(e);
+	}
+
+	@Override
+	public void mouseWheelMoved(MouseWheelEvent e) {
+		this.mouse.consumeEvent(e);
+	}
+
+	@Override
+	public void keyTyped(KeyEvent e) {
+		this.keyboard.consumeEvent(e);
+	}
+
+	@Override
+	public void keyPressed(KeyEvent e) {
+		this.keyboard.consumeEvent(e);
+	}
+
+	@Override
+	public void keyReleased(KeyEvent e) {
+		this.keyboard.consumeEvent(e);
+	}
 
 }

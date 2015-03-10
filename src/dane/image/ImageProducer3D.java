@@ -16,9 +16,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301  USA
  */
-package dane.media2d;
-
-import dane.media3d.Graphics3D;
+package dane.image;
 
 /**
  * A {@code ImageProducer} with easy usability to {@code Graphics3D}. This class encapsulates the offsets and zbuffer

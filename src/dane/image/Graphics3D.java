@@ -1,6 +1,7 @@
-package dane.media3d;
+package dane.image;
 
-import dane.media2d.Graphics2D;
+import dane.image.Graphics2D;
+import dane.media.Model;
 import java.util.Arrays;
 
 /*

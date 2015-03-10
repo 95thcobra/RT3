@@ -1,17 +1,17 @@
 package dane;
 
 import dane.applet.AppletShell;
+import dane.image.BitmapFont;
+import dane.image.Graphics2D;
+import dane.image.Graphics3D;
+import dane.image.ImageProducer3D;
+import dane.image.Sprite;
 import dane.input.Keyboard;
 import dane.input.Mouse;
 import dane.input.MouseButton;
-import dane.media2d.BitmapFont;
-import dane.media2d.Graphics2D;
-import dane.media2d.ImageProducer3D;
-import dane.media2d.Sprite;
-import dane.media3d.Graphics3D;
-import dane.media3d.Model;
-import dane.media3d.primitive.Grid;
-import dane.media3d.reader.ModelReader;
+import dane.media.Model;
+import dane.media.primitive.Grid;
+import dane.media.reader.ModelReader;
 import dane.util.Colors;
 import java.awt.Graphics;
 import java.awt.event.KeyEvent;
@@ -21,7 +21,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.JFrame;
 
 
 /*
@@ -52,7 +51,7 @@ public class Test3D extends AppletShell {
 
 	@Override
 	public void shutdown() {
-		System.out.println("shutdown n junk");
+		System.out.println("shutdown n junk n watever!");
 	}
 
 	private static class TestEntity {
@@ -73,18 +72,7 @@ public class Test3D extends AppletShell {
 	}
 
 	public static void main(String[] args) throws Throwable {
-		JFrame f = new JFrame();
-
-		Test3D test = new Test3D();
-		f.add(test);
-		f.setResizable(false);
-
-		test.initialize(512 * 2, 334 * 2);
-		f.pack();
-
-		f.setLocationRelativeTo(null);
-		f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		f.setVisible(true);
+		new Test3D().initialize(800, 600, true);
 	}
 
 	ImageProducer3D viewport;
@@ -100,8 +88,13 @@ public class Test3D extends AppletShell {
 	int cameraZ = 384;
 
 	@Override
-	public void initialize(int width, int height) {
-		viewport = new ImageProducer3D(width, height);
+	public void init() {
+		this.initialize(800, 600, false);
+	}
+
+	@Override
+	public void startup() {
+		viewport = new ImageProducer3D(this.getWidth(), this.getHeight());
 		viewport.bind();
 
 		Graphics3D.createPalette(1.0);
@@ -120,7 +113,7 @@ public class Test3D extends AppletShell {
 			grid.translate(-grid.maxBoundX / 2, -grid.minBoundY / 2, -grid.maxBoundZ / 2);
 			grid.setColor(Colors.rgbToHSL16(0x7CFC00));
 			grid.calculateNormals();
-			grid.calculateLighting(64, 768, -50, -50, -30);
+			grid.calculateLighting(64, 768, -50, -10, -50);
 		}
 		time = System.nanoTime() - time;
 		System.out.println("Grid took " + String.format("%sms", time / 1_000_000.0) + " to create.");
@@ -142,10 +135,11 @@ public class Test3D extends AppletShell {
 			for (String s : new String[]{"cube.ply", "icosphere.ply", "cone.ply", "torus.ply", "torusknot.ply", "teapot.ply", "suzanne.ply"}) {
 				try {
 					Model m = ModelReader.get("ply").read(new File(s));
-					m.setColor(Colors.rgbToHSL16(0xFFD700));
+					m.setColor(Colors.rgbToHSL16(0xFF0000));
+					m.flipBackwards();
 					m.calculateBoundaries();
 					m.calculateNormals();
-					m.calculateLighting(64, 768, -50, -50, -30);
+					m.calculateLighting(64, 768, -50, -10, -50);
 
 					TestEntity e = new TestEntity();
 					e.x = x;
@@ -168,7 +162,7 @@ public class Test3D extends AppletShell {
 				Model m = ModelReader.get("obj").read(new File("untitled.obj"));
 				m.calculateBoundaries();
 				m.calculateNormals();
-				m.calculateLighting(64, 768, -50, -50, -30);
+				m.calculateLighting(64, 768, -50, -10, -50);
 
 				TestEntity e = new TestEntity();
 				e.x = -1600;
@@ -182,7 +176,6 @@ public class Test3D extends AppletShell {
 		time = System.nanoTime() - time;
 		System.out.println("Obj model took " + String.format("%sms", time / 1_000_000.0) + " to load.");
 
-		super.initialize(width, height);
 		System.gc();
 	}
 
@@ -215,12 +208,8 @@ public class Test3D extends AppletShell {
 		cameraZ += offsetZ;
 	}
 
-	public boolean keyIsDown(int key) {
-		return false;
-	}
-
 	@Override
-	public void update() {
+	public boolean update() {
 		Mouse mouse = this.getMouse();
 		Keyboard keyboard = this.getKeyboard();
 
@@ -256,6 +245,7 @@ public class Test3D extends AppletShell {
 		if (backward != 0 || left != 0) {
 			translateCamera(backward, left);
 		}
+		return true;
 	}
 
 	@Override
@@ -278,8 +268,8 @@ public class Test3D extends AppletShell {
 		if ((flags & DRAW_MODEL) != 0) {
 			for (TestEntity e : entities) {
 				e.draw(cameraPitchSine, cameraPitchCosine, cameraYawSine, cameraYawCosine, cameraX, cameraY, cameraZ);
-				e.yaw += 8;
-				e.yaw &= 0x7FF;
+				//e.yaw += 8;
+				//e.yaw &= 0x7FF;
 			}
 
 			grid.draw(0, 0, cameraPitchSine, cameraPitchCosine, cameraYawSine, cameraYawCosine, cameraX, cameraY, cameraZ, 1);

@@ -18,6 +18,7 @@
  */
 package dane.input;
 
+import dane.applet.AppletShell;
 import java.awt.AWTEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
@@ -31,7 +32,7 @@ public final class Mouse {
 
 	private int x;
 	private int y;
-	private MouseButton activeButton;
+	private MouseButton activeButton = MouseButton.NONE;
 	private MouseButton pressedButton;
 	private int pressX;
 	private int pressY;
@@ -42,6 +43,11 @@ public final class Mouse {
 	private int dragX;
 	private int dragY;
 	private int wheelRotation;
+	private final AppletShell shell;
+
+	public Mouse(AppletShell shell) {
+		this.shell = shell;
+	}
 
 	/**
 	 * Resets frame related variables to their default values.
@@ -91,8 +97,14 @@ public final class Mouse {
 		if (event instanceof MouseEvent) {
 			MouseEvent e = (MouseEvent) event;
 
-			final int eventX = e.getX();
-			final int eventY = e.getY();
+			int eventX = e.getX();
+			int eventY = e.getY();
+			int shellScale = this.shell.getScale();
+
+			if (shellScale != 1) {
+				eventX /= shellScale;
+				eventY /= shellScale;
+			}
 
 			switch (e.getID()) {
 				case MouseEvent.MOUSE_MOVED: {
@@ -150,35 +162,35 @@ public final class Mouse {
 	}
 
 	public int getPressY() {
-		return pressY;
+		return this.pressY;
 	}
 
 	public int getReleaseX() {
-		return releaseX;
+		return this.releaseX;
 	}
 
 	public int getReleaseY() {
-		return releaseY;
+		return this.releaseY;
 	}
 
 	public int getDragDeltaX() {
-		return dragDeltaX;
+		return this.dragDeltaX;
 	}
 
 	public int getDragDeltaY() {
-		return dragDeltaY;
+		return this.dragDeltaY;
 	}
 
 	public int getDragX() {
-		return dragX;
+		return this.dragX;
 	}
 
 	public int getDragY() {
-		return dragY;
+		return this.dragY;
 	}
 
 	public int getWheelRotation() {
-		return wheelRotation;
+		return this.wheelRotation;
 	}
 
 }

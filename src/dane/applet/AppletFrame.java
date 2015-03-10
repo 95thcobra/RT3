@@ -16,13 +16,40 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301  USA
  */
-package dane.media3d;
+package dane.applet;
+
+import javax.swing.JFrame;
 
 /**
  *
  * @author Dane
  */
-public class Normal {
+public class AppletFrame extends JFrame {
 
-	public int x, y, z, magnitude;
+	private final AppletShell shell;
+
+	public AppletFrame(AppletShell shell) {
+		this.shell = shell;
+		this.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+		this.setResizable(false);
+
+		this.add(shell);
+		this.pack();
+		this.setLocationRelativeTo(null);
+
+		this.setVisible(true);
+	}
+
+	@Override
+	public void dispose() {
+		if (this.shell.canShutdown()) {
+			super.dispose();
+			this.shell.destroy();
+		}
+	}
+
+	public AppletShell getShell() {
+		return this.shell;
+	}
+
 }

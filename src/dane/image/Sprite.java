@@ -1,4 +1,4 @@
-package dane.media2d;
+package dane.image;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
